@@ -12,8 +12,11 @@ from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.metrics import (silhouette_score, calinski_harabasz_score, davies_bouldin_score,
-                             adjusted_rand_score)
+                             adjusted_rand_score, r2_score, mean_absolute_error, root_mean_squared_error)
 
 OUT = "figures"; os.makedirs(OUT, exist_ok=True)
 INK, MUT = "#0b0b0b", "#8a8a86"
@@ -206,6 +209,84 @@ fig.text(0.5, -0.02, f"Ward linkage merges counties bottom-up and never uses K. 
 fig.tight_layout(); fig.savefig(f"{OUT}/5_dendrogram.png", bbox_inches="tight")
 print("saved figures/5_dendrogram.png")
 
-df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "RPL_THEMES", "MOBILITY", "cluster"]].to_csv(
-    f"{OUT}/combined_clusters.csv", index=False)
-print("saved figures/combined_clusters.csv")
+# --- 6. supervised check: can the 16 inputs predict the outcome? -------------
+SVI_ONLY = [c for c in COLS if c != "MOBILITY"]
+Xs, y = df[SVI_ONLY].values, df["MOBILITY"].values
+Xtr, Xte, ytr, yte = train_test_split(Xs, y, test_size=0.2, random_state=42)
+
+lin = LinearRegression().fit(Xtr, ytr)
+rf = RandomForestRegressor(n_estimators=300, random_state=42, n_jobs=-1).fit(Xtr, ytr)
+print("\n=== supervised evaluation (80/20 split, held-out test set) ===")
+print(f"{'model':20s} {'R2':>7} {'MAE':>8} {'RMSE':>8}")
+for name, m in [("linear regression", lin), ("random forest", rf)]:
+    p = m.predict(Xte)
+    print(f"{name:20s} {r2_score(yte, p):7.3f} {mean_absolute_error(yte, p):8.4f} "
+          f"{root_mean_squared_error(yte, p):8.4f}")
+pred_te = rf.predict(Xte)
+r2_rf = r2_score(yte, pred_te)
+mae_rf = mean_absolute_error(yte, pred_te)
+rmse_rf = root_mean_squared_error(yte, pred_te)
+# RMSE > MAE means a minority of counties are missed badly; those are the
+# residual outliers figure 7 is built from, so the gap is the point, not noise
+print(f"\nRMSE/MAE ratio = {rmse_rf/mae_rf:.2f}  "
+      f"(1.0 would mean every county is missed by the same amount)")
+
+imp = pd.Series(rf.feature_importances_, index=[FEATS[c] for c in SVI_ONLY]).sort_values()
+print("\ntop 5 predictors of upward mobility:")
+print(imp.tail(5)[::-1].round(3).to_string())
+
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(12.5, 5.2))
+a1.scatter(yte, pred_te, s=10, alpha=0.4, color="#2a78d6", edgecolors="none")
+lims = [min(yte.min(), pred_te.min()), max(yte.max(), pred_te.max())]
+a1.plot(lims, lims, ls="--", color="#e34948", lw=1.3)
+a1.set_xlabel("actual upward mobility"); a1.set_ylabel("predicted upward mobility")
+a1.set_title(f"Held-out predictions\nR² = {r2_rf:.2f}   MAE = {mae_rf:.4f}   RMSE = {rmse_rf:.4f}",
+             fontsize=11.5, weight="bold")
+a1.text(0.03, 0.95, "points on the line = perfect prediction", transform=a1.transAxes,
+        fontsize=8.5, color=MUT, va="top")
+top = imp.tail(10)
+a2.barh(range(len(top)), top.values, color=["#e34948" if n in ("Minority", "Limited English")
+        else "#2a78d6" for n in top.index], edgecolor="white")
+a2.set_yticks(range(len(top))); a2.set_yticklabels(top.index, fontsize=9)
+a2.set_xlabel("share of predictive power"); a2.grid(axis="y", visible=False)
+a2.set_title("What the model leans on", fontsize=11.5, weight="bold")
+a2.text(0.97, 0.05, "red = demographic feature", transform=a2.transAxes,
+        fontsize=8.5, color="#e34948", ha="right")
+fig.suptitle("Random forest: predicting a county's upward mobility from its 16 vulnerability measures",
+             fontsize=13, weight="bold")
+fig.tight_layout(rect=[0, 0, 1, 0.94])
+fig.savefig(f"{OUT}/6_model_evaluation.png", bbox_inches="tight")
+print("saved figures/6_model_evaluation.png")
+
+# --- 7. resilience: counties that beat their prediction ----------------------
+# cross_val_predict so every county is scored by a model that never saw it
+df["pred"] = cross_val_predict(RandomForestRegressor(n_estimators=300, random_state=42,
+                                                     n_jobs=-1), Xs, y, cv=5)
+df["residual"] = df["MOBILITY"] - df["pred"]
+big = df[df.E_TOTPOP >= 50_000].copy()   # small-county mobility estimates are noisy
+over = big.nlargest(12, "residual"); under = big.nsmallest(12, "residual")
+print(f"\n=== resilience (counties >= 50k people, n={len(big)}) ===")
+print("beating their profile:", ", ".join(f"{r.COUNTY} {r.ST_ABBR}" for _, r in over.head(5).iterrows()))
+print("falling short:       ", ", ".join(f"{r.COUNTY} {r.ST_ABBR}" for _, r in under.head(5).iterrows()))
+
+fig, ax = plt.subplots(figsize=(9.5, 7))
+show = pd.concat([under[::-1], over])
+labels = [f"{r.COUNTY}, {r.ST_ABBR}" for _, r in show.iterrows()]
+ax.barh(range(len(show)), show.residual.values,
+        color=["#e34948" if v < 0 else "#1baf7a" for v in show.residual],
+        edgecolor="white")
+ax.set_yticks(range(len(show))); ax.set_yticklabels(labels, fontsize=8.5)
+ax.axvline(0, color=INK, lw=1)
+ax.set_xlabel("actual mobility minus predicted mobility")
+ax.set_title("Which counties outperform what their conditions predict?",
+             fontsize=13, weight="bold", pad=10)
+ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
+fig.text(0.5, -0.01, "Green = poor kids do better here than the model expects given local conditions. "
+         "Counties under 50,000 people excluded (noisy estimates).",
+         ha="center", fontsize=8.5, color=MUT)
+fig.tight_layout(); fig.savefig(f"{OUT}/7_resilience.png", bbox_inches="tight")
+print("saved figures/7_resilience.png")
+
+df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "E_TOTPOP", "RPL_THEMES", "MOBILITY",
+    "pred", "residual", "cluster"]].to_csv(f"{OUT}/combined_clusters.csv", index=False)
+print("saved figures/combined_clusters.csv (now with predictions + residuals)")
