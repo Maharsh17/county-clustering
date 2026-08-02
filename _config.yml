@@ -1,0 +1,13 @@
+theme: jekyll-theme-cayman # do not change this line
+
+title: What Kind of Place Is Your County?
+description: Clustering 3,128 US counties by social vulnerability and upward mobility, then testing whether the groups are real or an artifact of what we chose to measure. AI4ALL Ignite.
+
+exclude:
+  - .venv/
+  - __pycache__/
+  - data/
+  - analysis.py
+  - app.py
+  - test_app.py
+  - requirements.txt

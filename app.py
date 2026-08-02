@@ -4,6 +4,9 @@ One map, controls down the left, the selected county down the right. Every
 checkbox refits the model, so the map redraws to show what the model looks like
 when it is allowed to see less. Click any county and its five nearest matches
 light up, usually a few hundred miles away.
+
+Copyright (C) 2026 Maharsh Jani. Licensed under the GNU Affero General
+Public License v3.0 or later. See LICENSE, or <https://www.gnu.org/licenses/>.
 """
 import json
 from urllib.request import urlopen
@@ -30,6 +33,7 @@ FEATS = {
 COLS = list(FEATS)
 PAL = ["#2a78d6", "#1baf7a", "#eda100", "#e34948", "#4a3aa7", "#008300", "#e87ba4"]
 GEOJSON = "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json"
+SOURCE = "https://github.com/Maharsh17/county-clustering"
 BASELINE_SIL = 0.155   # all 17 measures at K=4, from analysis.py
 
 
@@ -342,6 +346,10 @@ def main():
     st.caption("Data: CDC/ATSDR Social Vulnerability Index and county upward-mobility "
                "estimates. Types describe counties, not the people who live in them. "
                "See the README for sources, limitations, and how the bias probe works.")
+    # AGPL section 13: anyone using this over a network must be offered the source
+    st.caption(f"Copyright © 2026 Maharsh Jani. Licensed under the "
+               f"[GNU AGPL v3]({SOURCE}/blob/main/LICENSE). "
+               f"[Source code]({SOURCE}).")
 
 
 if __name__ == "__main__":

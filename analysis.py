@@ -1,5 +1,8 @@
 """County social-mobility clustering: 16 SVI vulnerability measures plus upward mobility,
 urban-rural as context. Run: ./.venv/bin/python analysis.py
+
+Copyright (C) 2026 Maharsh Jani. Licensed under the GNU Affero General
+Public License v3.0 or later. See LICENSE, or <https://www.gnu.org/licenses/>.
 """
 import json
 from urllib.request import urlopen
