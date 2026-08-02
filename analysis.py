@@ -16,7 +16,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.metrics import (silhouette_score, calinski_harabasz_score, davies_bouldin_score,
-                             adjusted_rand_score, r2_score, mean_absolute_error, root_mean_squared_error)
+                             adjusted_rand_score, r2_score, mean_absolute_error,
+                             root_mean_squared_error)
 
 OUT = "figures"; os.makedirs(OUT, exist_ok=True)
 INK, MUT = "#0b0b0b", "#8a8a86"
@@ -286,6 +287,50 @@ fig.text(0.5, -0.01, "Green = poor kids do better here than the model expects gi
          ha="center", fontsize=8.5, color=MUT)
 fig.tight_layout(); fig.savefig(f"{OUT}/7_resilience.png", bbox_inches="tight")
 print("saved figures/7_resilience.png")
+
+# --- 8. bias probe: what happens if we drop the demographic features? --------
+DROP = ["EP_MINRTY", "EP_LIMENG"]
+KEPT = [c for c in COLS if c not in DROP]
+Xa = StandardScaler().fit_transform(df[KEPT])
+kma = KMeans(n_clusters=K, n_init=10, random_state=42).fit(Xa)
+cent_a = pd.DataFrame(kma.cluster_centers_, columns=[FEATS[c] for c in KEPT])
+order_a = cent_a["Upward mobility"].sort_values().index.tolist()
+lab_a = pd.Series(kma.labels_).map({o: i for i, o in enumerate(order_a)}).values
+cent_a = cent_a.iloc[order_a].reset_index(drop=True)
+ari_abl = adjusted_rand_score(df["cluster"], lab_a)
+sil_full, sil_abl = silhouette_score(X, km.labels_), silhouette_score(Xa, kma.labels_)
+
+print("\n=== bias probe: refit without Minority + Limited English ===")
+print(f"silhouette  full {sil_full:.3f}  ->  ablated {sil_abl:.3f}   (change {sil_abl-sil_full:+.3f})")
+print(f"adjusted Rand index vs original labels: {ari_abl:.3f}")
+print(f"counties keeping the same type: {(df['cluster'].values == lab_a).mean()*100:.1f}%")
+
+shared = [FEATS[c] for c in KEPT]
+fig, axes = plt.subplots(1, 2, figsize=(13, 7), sharey=True)
+panels = [(cent[shared], f"All 17 inputs\nsilhouette {sil_full:.3f}", LABELS),
+          (cent_a[shared], f"Minority + Limited English removed\nsilhouette {sil_abl:.3f}",
+           [f"Type {i+1}\n(regrouped)" for i in range(K)])]
+for a, (cent_x, ttl, xlab) in zip(axes, panels):
+    M = cent_x.T.values
+    im = a.imshow(M, cmap=DIVERGE, vmin=-1.6, vmax=1.6, aspect="auto")
+    a.set_xticks(range(K)); a.set_xticklabels(xlab, fontsize=9)
+    a.set_title(ttl, fontsize=11.5, weight="bold"); a.grid(False)
+    for i in range(M.shape[0]):
+        for j in range(M.shape[1]):
+            a.text(j, i, f"{M[i, j]:+.1f}", ha="center", va="center", fontsize=7.5,
+                   color="white" if abs(M[i, j]) > 1.0 else INK)
+axes[0].set_yticks(range(len(shared))); axes[0].set_yticklabels(shared, fontsize=9)
+fig.suptitle("Does the structure survive without the demographic features?",
+             fontsize=14, weight="bold")
+fig.colorbar(im, ax=axes, shrink=0.55, label="above / below US average")
+fig.text(0.5, 0.015, f"Dropping the two demographic inputs changes separation quality by "
+         f"{sil_abl-sil_full:+.3f} and {(df['cluster'].values == lab_a).mean()*100:.0f}% of counties keep "
+         f"their type (adjusted Rand index {ari_abl:.2f}). The four-way structure survives, so it was "
+         "mostly tracking material conditions. What the two features bought us was not separation. "
+         "It was the name we wrote on the group.",
+         ha="center", fontsize=9, color=MUT)
+fig.savefig(f"{OUT}/8_bias_probe.png", bbox_inches="tight")
+print("saved figures/8_bias_probe.png")
 
 df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "E_TOTPOP", "RPL_THEMES", "MOBILITY",
     "pred", "residual", "cluster"]].to_csv(f"{OUT}/combined_clusters.csv", index=False)
