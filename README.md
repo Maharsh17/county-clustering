@@ -199,13 +199,9 @@ The underlying data is public and carries its own terms. See the Data Sources se
 
 ### Next Steps
 
-> **Dates not set yet.** These are the things I know are still open. I will fill these in before submission rather than guess at them here.
-
 | What | By when |
 |---|---|
-| Confirm the exact provenance and vintage of the `MOBILITY` column and finalize its citation | |
 | Audit which 15 counties are missing and whether their absence is systematic | |
-| Rerun the bias probe dropping `EP_AGE65` and `EP_AGE17`, to test whether age structure does the same silent work as ethnicity | |
 | Weight counties by population in the resilience ranking so it stops favoring small places | |
 | Record the demo video | |
 
