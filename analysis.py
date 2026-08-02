@@ -11,12 +11,11 @@ import plotly.express as px
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+from sklearn.metrics import (silhouette_score, calinski_harabasz_score, davies_bouldin_score)
 
 OUT = "figures"; os.makedirs(OUT, exist_ok=True)
 INK, MUT = "#0b0b0b", "#8a8a86"
 DIVERGE = LinearSegmentedColormap.from_list("bwr", ["#256abf", "#f4f4f2", "#e34948"])
-CLUSTER_COLORS = ["#2a78d6", "#1baf7a", "#e34948", "#eda100", "#4a3aa7"]
 PAL = ["#2a78d6", "#1baf7a", "#eda100", "#008300", "#4a3aa7", "#e34948", "#e87ba4"]
 
 FEATS = {
@@ -29,6 +28,12 @@ FEATS = {
 }
 COLS = list(FEATS)
 K = 4
+
+# Clusters are renumbered by mean upward mobility (see the `remap` step below), so
+# type 0 is always the lowest-mobility group. These names are mine, not the model's,
+# and they only hold for K=4 on the full feature set. Every figure uses this labelling.
+NAMES = ["Rural hardship", "Costly big metros", "Immigrant gateways", "Comfortable America"]
+LABELS = [f"Type {i+1}\n{NAMES[i]}" for i in range(K)]
 
 plt.rcParams.update({"font.size": 11, "axes.edgecolor": "#cccccc",
                      "axes.grid": True, "grid.color": "#eeeeee", "figure.dpi": 130})
@@ -116,47 +121,20 @@ for c in range(K):
     row = cent.iloc[c]
     hi = row[row >= 0.6].sort_values(ascending=False)
     lo = row[row <= -0.6].sort_values()
-    print(f"\nCluster {c}:  HIGH -> " + ", ".join(f"{n} (+{v:.1f})" for n, v in hi.items()))
+    print(f"\nType {c+1} ({NAMES[c]}):  HIGH -> " + ", ".join(f"{n} (+{v:.1f})" for n, v in hi.items()))
     print(f"           LOW  -> " + ", ".join(f"{n} ({v:.1f})" for n, v in lo.items()))
 
-print("\n=== 4 biggest counties in each cluster ===")
+print("\n=== 4 biggest counties in each type ===")
 for c in range(K):
     d = df[df.cluster == c].nlargest(4, "E_TOTPOP")
     names = ", ".join(f"{r.COUNTY} {r.ST_ABBR}" for _, r in d.iterrows())
-    print(f"Cluster {c}: {names}")
-
-fig, ax = plt.subplots(figsize=(8.6, 6))
-for c in range(K):
-    d = df[df.cluster == c]
-    ax.scatter(d.RPL_THEMES, d.MOBILITY, s=12, alpha=0.5,
-               color=CLUSTER_COLORS[c], label=f"Type {c+1}", edgecolors="none")
-ax.set_xlabel("Social vulnerability  (SVI percentile, higher = more vulnerable)")
-ax.set_ylabel("Upward mobility  (adult income rank of poor kids)")
-ax.set_title("Social-mobility types of US counties", fontsize=14, weight="bold", pad=10)
-ax.legend(title="County type", frameon=False, markerscale=1.6, fontsize=9)
-ax.text(0.02, 0.03, "Bottom-right = high vulnerability, low mobility (traps)\n"
-        "Top-right = vulnerable but still lifts kids (resilient)",
-        transform=ax.transAxes, fontsize=8.5, color=MUT, va="bottom")
-fig.tight_layout(); fig.savefig(f"{OUT}/3_mobility_vs_vulnerability.png", bbox_inches="tight")
-print("\nsaved figures/3_mobility_vs_vulnerability.png")
-
-fig, ax = plt.subplots(figsize=(8.2, 4.6))
-ax.barh(range(K), prof.mobility.values, color=[CLUSTER_COLORS[c] for c in range(K)], edgecolor="white")
-for i, (mob, v, ur) in enumerate(zip(prof.mobility, prof.vuln, prof.urban_rural)):
-    ax.text(mob + 0.005, i, f"mobility {mob:.2f} | vuln {v:.2f} | urban-rural {ur:.1f}",
-            va="center", fontsize=9, color=INK)
-ax.set_yticks(range(K)); ax.set_yticklabels([f"Type {c+1}" for c in range(K)])
-ax.set_xlabel("Mean upward mobility"); ax.set_xlim(0, 0.6)
-ax.set_title("Four county types, low to high mobility", fontsize=13, weight="bold", pad=10)
-ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
-fig.tight_layout(); fig.savefig(f"{OUT}/4_cluster_profiles.png", bbox_inches="tight")
-print("saved figures/4_cluster_profiles.png")
+    print(f"Type {c+1} ({NAMES[c]}): {names}")
 
 fig, ax = plt.subplots(figsize=(9.5, 7))
 M = cent.T.values
 im = ax.imshow(M, cmap=DIVERGE, vmin=-1.6, vmax=1.6, aspect="auto")
 ax.grid(False)
-ax.set_xticks(range(K)); ax.set_xticklabels([f"Cluster {c}" for c in range(K)])
+ax.set_xticks(range(K)); ax.set_xticklabels(LABELS, fontsize=9.5)
 ax.set_yticks(range(len(COLS))); ax.set_yticklabels([FEATS[c] for c in COLS])
 ax.axhline(15.5, color="#555", lw=1.2, ls="--")
 for i in range(M.shape[0]):
@@ -164,25 +142,19 @@ for i in range(M.shape[0]):
         v = M[i, j]
         ax.text(j, i, f"{v:+.1f}", ha="center", va="center", fontsize=8,
                 color="white" if abs(v) > 1.0 else INK)
-ax.set_title("What defines each cluster (z-score vs national average)", fontsize=13, weight="bold", pad=10)
+ax.set_title("What defines each type (z-score vs national average)", fontsize=13, weight="bold", pad=10)
 cb = fig.colorbar(im, ax=ax, shrink=0.6); cb.set_label("above / below US average", fontsize=9)
 fig.text(0.5, -0.01, "Dashed line separates the mobility outcome from the 16 vulnerability inputs",
          ha="center", fontsize=8.5, color=MUT)
-fig.tight_layout(); fig.savefig(f"{OUT}/5_combined_cluster_profiles.png", bbox_inches="tight")
-print("saved figures/5_combined_cluster_profiles.png")
+fig.tight_layout(); fig.savefig(f"{OUT}/3_combined_cluster_profiles.png", bbox_inches="tight")
+print("\nsaved figures/3_combined_cluster_profiles.png")
 
-df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "RPL_THEMES", "MOBILITY", "cluster"]].to_csv(
-    f"{OUT}/combined_clusters.csv", index=False)
-print("saved figures/combined_clusters.csv")
-
-NAMES = {0: "Rural hardship", 1: "Costly big metros", 2: "Immigrant gateways", 3: "Comfortable America"}
-MAP_COLORS = {"Rural hardship": "#2a78d6", "Costly big metros": "#1baf7a",
-              "Immigrant gateways": "#e34948", "Comfortable America": "#eda100"}
-ORDER = ["Rural hardship", "Costly big metros", "Immigrant gateways", "Comfortable America"]
+ORDER = [f"Type {i+1} · {NAMES[i]}" for i in range(K)]
+MAP_COLORS = dict(zip(ORDER, ["#2a78d6", "#1baf7a", "#e34948", "#eda100"]))
 
 map_df = df[["FIPS", "cluster"]].copy()
 map_df["FIPS"] = map_df["FIPS"].str.zfill(5)
-map_df["Type"] = map_df["cluster"].map(NAMES)
+map_df["Type"] = map_df["cluster"].map(dict(enumerate(ORDER)))
 print("\ncounties to map:", len(map_df), "| types:", map_df["Type"].value_counts().to_dict())
 
 URL = "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json"
@@ -197,6 +169,10 @@ fig = px.choropleth(
 )
 fig.update_traces(marker_line_width=0)
 fig.update_layout(legend_title_text="County type", title_x=0.5, margin=dict(l=0, r=0, t=50, b=0))
-fig.write_html(f"{OUT}/6_cluster_map.html")
-fig.write_image(f"{OUT}/6_cluster_map.png", width=1100, height=700, scale=2)
-print("saved figures/6_cluster_map.html and .png")
+fig.write_html(f"{OUT}/4_cluster_map.html")
+fig.write_image(f"{OUT}/4_cluster_map.png", width=1100, height=700, scale=2)
+print("saved figures/4_cluster_map.html and .png")
+
+df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "RPL_THEMES", "MOBILITY", "cluster"]].to_csv(
+    f"{OUT}/combined_clusters.csv", index=False)
+print("saved figures/combined_clusters.csv")
