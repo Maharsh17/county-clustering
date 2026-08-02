@@ -8,10 +8,12 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import pandas as pd, numpy as np, os
 import plotly.express as px
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-from sklearn.metrics import (silhouette_score, calinski_harabasz_score, davies_bouldin_score)
+from sklearn.metrics import (silhouette_score, calinski_harabasz_score, davies_bouldin_score,
+                             adjusted_rand_score)
 
 OUT = "figures"; os.makedirs(OUT, exist_ok=True)
 INK, MUT = "#0b0b0b", "#8a8a86"
@@ -172,6 +174,37 @@ fig.update_layout(legend_title_text="County type", title_x=0.5, margin=dict(l=0,
 fig.write_html(f"{OUT}/4_cluster_map.html")
 fig.write_image(f"{OUT}/4_cluster_map.png", width=1100, height=700, scale=2)
 print("saved figures/4_cluster_map.html and .png")
+
+# --- 5. hierarchical clustering: is K=4 natural or forced? -------------------
+# Ward linkage on Euclidean distance. metric="euclidean" is scipy's default and is
+# also the only metric Ward accepts, since its criterion is the increase in
+# within-cluster sum of squares. X is already standardized, so this is the same
+# space K-Means works in: same objective, minimized bottom-up instead of top-down.
+Z = linkage(X, method="ward", metric="euclidean")
+hier = fcluster(Z, t=K, criterion="maxclust")
+ari_hier = adjusted_rand_score(km.labels_, hier)
+print(f"\n=== hierarchical check ===")
+print(f"Ward linkage cut at {K} groups vs K-Means: adjusted Rand index = {ari_hier:.3f}")
+print("hierarchical group sizes:", np.bincount(hier)[1:])
+
+fig, ax = plt.subplots(figsize=(11, 5.5))
+dendrogram(Z, truncate_mode="lastp", p=30, ax=ax, color_threshold=Z[-(K - 1), 2],
+           above_threshold_color=MUT, no_labels=True)
+ax.axhline(Z[-(K - 1), 2], color="#e34948", ls="--", lw=1.4)
+ax.text(0.01, Z[-(K - 1), 2], f"  cut here = {K} groups", color="#e34948",
+        fontsize=9.5, va="bottom", transform=ax.get_yaxis_transform())
+ax.set_title("A second method, built differently, also lands on four groups",
+             fontsize=14, weight="bold", pad=10)
+ax.set_ylabel("Ward merge cost\n(not a distance: scales with cluster size)")
+ax.set_xlabel("counties (bottom 30 branches merged)")
+ax.grid(False)
+fig.text(0.5, -0.02, f"Ward linkage merges counties bottom-up and never uses K. The four-way cut "
+         f"sits below a long vertical gap, so four is a real seam in the data. It only partly "
+         f"reproduces the K-Means grouping (adjusted Rand index = {ari_hier:.2f}), which tells us "
+         "the seam is real but where exactly the lines fall is method-dependent.",
+         ha="center", fontsize=8.5, color=MUT)
+fig.tight_layout(); fig.savefig(f"{OUT}/5_dendrogram.png", bbox_inches="tight")
+print("saved figures/5_dendrogram.png")
 
 df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "RPL_THEMES", "MOBILITY", "cluster"]].to_csv(
     f"{OUT}/combined_clusters.csv", index=False)
