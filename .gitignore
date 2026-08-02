@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+# 16 MB, regenerate with analysis.py
+figures/4_cluster_map.html
