@@ -1,6 +1,6 @@
 # What Kind of Place Is Your County?
 
-I grouped 3,128 US counties by 16 social-vulnerability measures and how much money kids raised poor there earn as adults, then spent most of my effort on a harder question: are the groups I found real, or are they an artifact of what I chose to measure? Built in the AI4ALL Ignite accelerator using K-Means clustering, hierarchical validation, and a supervised random forest, in Python with scikit-learn and Streamlit.
+I grouped 3,128 US counties by 16 social-vulnerability measures and how much money kids raised poor there earn as adults, then spent most of my effort on a harder question: are the groups I found real, or are they an artifact of what I chose to measure? Built using K-Means clustering, hierarchical validation, and a supervised random forest, in Python with scikit-learn and Streamlit.
 
 I go to school at UIUC and I've always seen a very stark difference between Downtown Champaign and Campus Town. Interestingly, when I looked at **Champaign County Illinois, it is most similar to Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia.** Every one is a college town, and they sit an average of 376 miles apart. Nobody told the model that universities exist. It found them from poverty rates, housing, and age structure alone!
 
@@ -10,17 +10,17 @@ I go to school at UIUC and I've always seen a very stark difference between Down
 
 ---
 
-## Problem Statement <!--- do not change this line -->
+## Problem Statement
 
-Public-health and anti-poverty programs usually rank counties from worst to best and send help down the list. A ranking tells you *who* is struggling. It cannot tell you *what kind* of trouble they are in.
+Public-health and anti-poverty programs usually rank counties from worst to best and send help down the list. A ranking tells you *who* is struggling. It cannot tell you what kind of trouble they are in.
 
 That distinction decides whether an intervention works. A rural county where a third of homes are mobile homes and a quarter of adults have a disability needs something different from a coastal metro where families are priced out of housing they can otherwise reach. Rank both as "high need" and you lose the only information that would tell you what to send.
 
-The stakes are concrete. Where a child grows up measurably changes what they earn as an adult, and county-level allocation decisions are made every budget cycle with a ranking as the input. If grouping counties by *kind* is more useful than ordering them by severity, that is a change any agency could adopt tomorrow.
+The stakes are concrete. Where a child grows up measurably changes what they earn as an adult, and county-level allocation decisions are made every budget cycle with a ranking as the input. If grouping counties by kind is more useful than ordering them by severity, that is a change any agency could adopt tomorrow.
 
 But there is a second problem underneath, and it is the one this project actually spends its time on. Any grouping is a function of what you decided to measure. The Social Vulnerability Index treats minority status as a component of vulnerability. Feed that to a clustering algorithm and it will hand you a group defined by race, which a human will then name. I wanted to know whether my groups were tracking material conditions or ethnicity, so I built an experiment that could have embarrassed me.
 
-## Key Results <!--- do not change this line -->
+## Key Results
 
 1. **Four types of American county emerged**, numbered by mean upward mobility so Type 1 is always the lowest.
 
@@ -41,7 +41,7 @@ But there is a second problem underneath, and it is the one this project actuall
 
 6. **[A live interactive version](https://county-clustering.streamlit.app)** lets anyone refit the model themselves. Every checkbox removes a measure and redraws the map, so the claim that these groups depend on what I chose to measure is something you can test rather than take my word for.
 
-## Methodologies <!--- do not change this line -->
+## Methodologies
 
 **Type of learning: unsupervised (clustering), with a supervised regression added as a check on it.**
 
@@ -54,9 +54,9 @@ But there is a second problem underneath, and it is the one this project actuall
 
 I standardized every feature to mean 0 and standard deviation 1 before clustering, because K-Means measures straight-line distance and raw percentages would let whichever column happened to have the widest range dominate. Clusters are renumbered by mean mobility after fitting, so Type 1 is the lowest-mobility group on every run regardless of how K-Means happens to order its labels.
 
-**Why K-Means, and what it costs me.** The centroids *are* the answer: each one is a readable profile of a kind of place. A method producing better-separated but uninterpretable groups would be useless here. Against that, K-Means assumes clusters are round and similar-sized, which county data is not. It forces every county into a group, so there is no "unlike anything else" category. K is chosen by me rather than learned. And it is entirely at the mercy of feature selection and scaling, which is precisely the weakness my bias probe exploits.
+**Why K-Means, and what it costs** The centroids are the answer, as each one is a readable profile of a kind of place. A method producing better-separated but uninterpretable groups would be useless here. Against that, K-Means assumes clusters are round and similar-sized, which county data is not. It forces every county into a group, so there is no "unlike anything else" category. K is chosen by me rather than learned. And it is entirely at the mercy of feature selection and scaling, which is precisely the weakness my bias probe exploits.
 
-**Choosing K.** Silhouette and Calinski-Harabasz both prefer K=2, and that is a real finding rather than a bug: at the coarsest level American counties split into "doing fine" and "not doing fine." That split is statistically cleanest and analytically useless, because it is the ranking I was trying to escape. Davies-Bouldin's K=9 yields groups too small to act on. I chose K=4 for interpretability and I say so out loud rather than reporting the K that flatters the metrics.
+**Choosing K.** Silhouette and Calinski-Harabasz both prefer K=2, and that is a real finding rather than a bug. At the coarsest level American counties split into "doing fine" and "not doing fine." That split is statistically cleanest and analytically useless, because it is the ranking I was trying to escape. Davies-Bouldin's K=9 yields groups too small to act on. I chose K=4 for interpretability and I say so out loud rather than reporting the K that flatters the metrics.
 
 ![Choosing K](figures/2_optimal_k_tests.png)
 
