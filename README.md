@@ -39,7 +39,7 @@ But there is a second problem underneath, and it is the one this project actuall
 
 5. **Four statistical tests for the number of clusters gave four different answers** (silhouette 2, Calinski-Harabasz 2, Davies-Bouldin 9, elbow 3). I ran 4 and explain why below. Independent Ward hierarchical clustering, which never uses K, finds a genuine gap at the four-way cut.
 
-6. **A live interactive version** lets anyone refit the model themselves. Every checkbox removes a measure and redraws the map.
+6. **[A live interactive version](https://county-clustering.streamlit.app)** lets anyone refit the model themselves. Every checkbox removes a measure and redraws the map, so the claim that these groups depend on what I chose to measure is something you can test rather than take my word for.
 
 ## Methodologies <!--- do not change this line -->
 
@@ -181,7 +181,7 @@ python -m venv .venv
 
 In the app, every sidebar checkbox removes a measure and refits everything. Unchecking Minority and Limited English reproduces the bias probe live, and the silhouette readout shows you the delta.
 
-The hosted copy runs on Streamlit Community Cloud, pointed at this repo's `main`, so it redeploys on every push. GitHub Pages serves the write-up you are reading, but it only serves static files and cannot run the app itself.
+The hosted copy lives at **[county-clustering.streamlit.app](https://county-clustering.streamlit.app)**, running on Streamlit Community Cloud against this repo's `main`, so it redeploys on every push. GitHub Pages serves the write-up you are reading, but it only serves static files and cannot run the app itself.
 
 ## Authors <!--- do not change this line -->
 
@@ -203,7 +203,6 @@ The underlying data is public and carries its own terms. See the Data Sources se
 
 | What | By when |
 |---|---|
-| Deploy the explorer to Streamlit Community Cloud and add the URL to this page | |
 | Confirm the exact provenance and vintage of the `MOBILITY` column and finalize its citation | |
 | Audit which 15 counties are missing and whether their absence is systematic | |
 | Rerun the bias probe dropping `EP_AGE65` and `EP_AGE17`, to test whether age structure does the same silent work as ethnicity | |
