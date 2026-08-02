@@ -24,10 +24,10 @@ But there is a second problem underneath, and it is the one this project actuall
 
    | Type | Counties | Mean mobility | What stands out (z-scores) |
    |---|---|---|---|
-   | **1 · Rural hardship** | 987 | 0.390 | Mobile homes +1.0, disability +0.9, poverty +0.9 |
-   | **2 · Costly big metros** | 630 | 0.412 | Multi-unit housing +1.2, housing cost burden +0.8 |
-   | **3 · Immigrant gateways** | 196 | 0.422 | Limited English +2.4, crowded housing +2.3, minority +2.0 |
-   | **4 · Comfortable America** | 1,315 | 0.470 | Mobility +0.6, minority -0.6 |
+   | **1. Rural hardship** | 987 | 0.390 | Mobile homes +1.0, disability +0.9, poverty +0.9 |
+   | **2. Costly big metros** | 630 | 0.412 | Multi-unit housing +1.2, housing cost burden +0.8 |
+   | **3. Immigrant gateways** | 196 | 0.422 | Limited English +2.4, crowded housing +2.3, minority +2.0 |
+   | **4. Comfortable America** | 1,315 | 0.470 | Mobility +0.6, minority -0.6 |
 
 2. **The two demographic features improved cluster separation by 0.001.** I refit without minority share and limited English. Silhouette moved from 0.155 to 0.156, and 67% of counties kept their type (adjusted Rand index 0.735). Statistically those two columns contributed nothing. What they bought was the *name* I wrote on the group.
 
@@ -79,7 +79,7 @@ Each type is then a profile of z-scores, which is the entire model in one pictur
 
 ![Model evaluation](figures/6_model_evaluation.png)
 
-RMSE exceeds MAE by a factor of 1.40. Since RMSE squares errors before averaging, that gap means the model is not uniformly a little wrong; it is close on most counties and badly wrong on a few. Those few are exactly what the next figure is built from.
+RMSE exceeds MAE by a factor of 1.40. Since RMSE squares errors before averaging, that gap means the model is not uniformly a little wrong. It is close on most counties and badly wrong on a few. Those few are exactly what the next figure is built from.
 
 **Finding the counties that beat their odds.** I used cross-validated predictions so that no county is ever scored by a model that saw it during training, then ranked by residual. Counties under 50,000 people are excluded because their mobility estimates rest on too few children.
 
@@ -105,7 +105,7 @@ My pipeline has three places where bias enters, and the algorithm is not one of 
 
 **What I named the result.** The model outputs the integer 2. "Immigrant gateways" is mine. My probe shows the group is held together by crowded housing and lack of insurance, so a more accurate name is something like "high-deprivation young metros." The name I first reached for described who lives there rather than what they are up against, and a policymaker reading it would draw a different conclusion about cause.
 
-**What I would do with it.** Allocating resources by type means every county in a group gets identical treatment. My proposal listed aggregation bias as a caveat; acting on the clusters turns it into a mechanism.
+**What I would do with it.** Allocating resources by type means every county in a group gets identical treatment. My proposal listed aggregation bias as a caveat. Acting on the clusters turns it into a mechanism.
 
 **Mitigation is why the probe exists.** I did not want to write a disclaimer, so I built a test whose result could have gone against me. It partly did. A third of counties change type when the demographic features come out, so those features are not inert. But separation quality does not improve at all, which means I cannot justify keeping them on performance grounds. In the live app, the checkboxes that reproduce this experiment are the first thing a visitor sees.
 
@@ -116,7 +116,7 @@ My pipeline has three places where bias enters, and the algorithm is not one of 
 ### Limitations
 
 - **Mobility is historical.** These estimates follow children born around 1978-1983. They describe the county those children grew up in, not necessarily the county that exists now.
-- **Small counties are noisy.** Estimates for low-population counties rest on few children. The resilience ranking excludes counties under 50,000; the raw figures do not.
+- **Small counties are noisy.** Estimates for low-population counties rest on few children. The resilience ranking excludes counties under 50,000, and the raw figures do not.
 - **Correlation only.** R² of 0.60 means the features track the outcome. Nothing here shows that changing a county's unemployment rate would change its children's earnings.
 - **County averages hide neighborhoods.** Cook County contains some of the highest and lowest mobility tracts in America and appears here as one dot.
 - **Coverage.** I analyze 3,128 of roughly 3,143 US counties. Eleven are absent from my merged file and four more were dropped for missing values. I have not audited which, and a systematic absence would bias the result.

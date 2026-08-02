@@ -1,7 +1,7 @@
 """Smoke test for the pieces of app.py that can actually be wrong.
 
 Run: ./.venv/bin/python test_app.py
-Streamlit widget wiring fails loudly in the browser; the clustering, the
+Streamlit widget wiring fails loudly in the browser. The clustering, the
 mobility-ordered relabelling and the nearest-neighbour search fail quietly.
 Those are what this checks.
 """
@@ -36,8 +36,8 @@ i = int(df.index[df.name == "Champaign County, IL"][0])
 nb = nearest(X, i)
 assert len(set(nb)) == 5 and i not in nb, f"bad neighbour set {nb}"
 
-# the map's highlight layer needs a coordinate per county; a few missing is fine,
-# a lot missing means the geojson ids stopped matching our FIPS
+# the map's highlight layer needs a coordinate per county. A few missing is fine,
+# a lot missing means the geojson ids stopped matching my FIPS
 cen = centroids()
 covered = sum(1 for f in df.FIPS if f in cen)
 assert covered > 0.99 * len(df), f"only {covered}/{len(df)} counties have a centroid"
@@ -46,5 +46,5 @@ fig = build_map(df.assign(type=labels), 4, i, nb)
 assert len(fig.data) == 4 + 2, f"expected 4 type traces + selected + neighbours, got {len(fig.data)}"
 assert len(fig.layout.annotations) == 1, "the on-map overlay card is missing"
 
-print(f"ok — {len(df)} counties, silhouette {sil:.3f}, {covered} centroids, "
+print(f"ok, {len(df)} counties, silhouette {sil:.3f}, {covered} centroids, "
       f"Champaign's nearest: {', '.join(df.name.iloc[nb])}")

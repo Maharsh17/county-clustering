@@ -6,7 +6,8 @@ Public License v3.0 or later. See LICENSE, or <https://www.gnu.org/licenses/>.
 """
 import json
 from urllib.request import urlopen
-import matplotlib; matplotlib.use("Agg")
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import pandas as pd, numpy as np, os
@@ -22,7 +23,8 @@ from sklearn.metrics import (silhouette_score, calinski_harabasz_score, davies_b
                              adjusted_rand_score, r2_score, mean_absolute_error,
                              root_mean_squared_error)
 
-OUT = "figures"; os.makedirs(OUT, exist_ok=True)
+OUT = "figures"
+os.makedirs(OUT, exist_ok=True)
 INK, MUT = "#0b0b0b", "#8a8a86"
 DIVERGE = LinearSegmentedColormap.from_list("bwr", ["#256abf", "#f4f4f2", "#e34948"])
 PAL = ["#2a78d6", "#1baf7a", "#eda100", "#008300", "#4a3aa7", "#e34948", "#e87ba4"]
@@ -65,7 +67,8 @@ for ax, k in zip(axes.ravel(), range(2, 8)):
         m = km.labels_ == c
         ax.scatter(xy[m, 0], xy[m, 1], s=6, alpha=0.45, color=PAL[c], edgecolors="none")
     ax.set_title(f"K = {k}    silhouette = {sil_by_k[k]:.3f}", fontsize=11, weight="bold")
-    ax.set_xticks([]); ax.set_yticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
     for s in ax.spines.values(): s.set_color("#cccccc")
 fig.suptitle("Same counties, clustered at K = 2 to 7  (PCA projection)", fontsize=14, weight="bold")
 fig.text(0.5, 0.005, f"Axes are the first two principal components "
@@ -105,8 +108,10 @@ for a, (title, vals, color, goal) in zip(ax.ravel(), specs):
     if best is not None:
         a.axvline(best, color="#888", ls="--", lw=1)
         a.text(best, a.get_ylim()[1], f" K={best}", color="#555", fontsize=9, va="top")
-    a.set_title(title, fontsize=11, weight="bold"); a.set_xlabel("number of clusters (K)")
-    a.grid(color="#eee"); a.set_axisbelow(True)
+    a.set_title(title, fontsize=11, weight="bold")
+    a.set_xlabel("number of clusters (K)")
+    a.grid(color="#eee")
+    a.set_axisbelow(True)
 fig.suptitle("How many clusters? Four tests on the combined dataset", fontsize=14, weight="bold")
 fig.tight_layout(rect=[0, 0, 1, 0.96])
 fig.savefig(f"{OUT}/2_optimal_k_tests.png", bbox_inches="tight")
@@ -143,8 +148,10 @@ fig, ax = plt.subplots(figsize=(9.5, 7))
 M = cent.T.values
 im = ax.imshow(M, cmap=DIVERGE, vmin=-1.6, vmax=1.6, aspect="auto")
 ax.grid(False)
-ax.set_xticks(range(K)); ax.set_xticklabels(LABELS, fontsize=9.5)
-ax.set_yticks(range(len(COLS))); ax.set_yticklabels([FEATS[c] for c in COLS])
+ax.set_xticks(range(K))
+ax.set_xticklabels(LABELS, fontsize=9.5)
+ax.set_yticks(range(len(COLS)))
+ax.set_yticklabels([FEATS[c] for c in COLS])
 ax.axhline(15.5, color="#555", lw=1.2, ls="--")
 for i in range(M.shape[0]):
     for j in range(M.shape[1]):
@@ -152,13 +159,15 @@ for i in range(M.shape[0]):
         ax.text(j, i, f"{v:+.1f}", ha="center", va="center", fontsize=8,
                 color="white" if abs(v) > 1.0 else INK)
 ax.set_title("What defines each type (z-score vs national average)", fontsize=13, weight="bold", pad=10)
-cb = fig.colorbar(im, ax=ax, shrink=0.6); cb.set_label("above / below US average", fontsize=9)
+cb = fig.colorbar(im, ax=ax, shrink=0.6)
+cb.set_label("above / below US average", fontsize=9)
 fig.text(0.5, -0.01, "Dashed line separates the mobility outcome from the 16 vulnerability inputs",
          ha="center", fontsize=8.5, color=MUT)
-fig.tight_layout(); fig.savefig(f"{OUT}/3_combined_cluster_profiles.png", bbox_inches="tight")
+fig.tight_layout()
+fig.savefig(f"{OUT}/3_combined_cluster_profiles.png", bbox_inches="tight")
 print("\nsaved figures/3_combined_cluster_profiles.png")
 
-ORDER = [f"Type {i+1} · {NAMES[i]}" for i in range(K)]
+ORDER = [f"Type {i+1}: {NAMES[i]}" for i in range(K)]
 MAP_COLORS = dict(zip(ORDER, ["#2a78d6", "#1baf7a", "#e34948", "#eda100"]))
 
 map_df = df[["FIPS", "cluster"]].copy()
@@ -210,7 +219,8 @@ fig.text(0.5, -0.02, f"Ward linkage merges counties bottom-up and never uses K. 
          f"reproduces the K-Means grouping (adjusted Rand index = {ari_hier:.2f}), which tells us "
          "the seam is real but where exactly the lines fall is method-dependent.",
          ha="center", fontsize=8.5, color=MUT)
-fig.tight_layout(); fig.savefig(f"{OUT}/5_dendrogram.png", bbox_inches="tight")
+fig.tight_layout()
+fig.savefig(f"{OUT}/5_dendrogram.png", bbox_inches="tight")
 print("saved figures/5_dendrogram.png")
 
 # --- 6. supervised check: can the 16 inputs predict the outcome? -------------
@@ -230,7 +240,7 @@ pred_te = rf.predict(Xte)
 r2_rf = r2_score(yte, pred_te)
 mae_rf = mean_absolute_error(yte, pred_te)
 rmse_rf = root_mean_squared_error(yte, pred_te)
-# RMSE > MAE means a minority of counties are missed badly; those are the
+# RMSE > MAE means a minority of counties are missed badly. Those are the
 # residual outliers figure 7 is built from, so the gap is the point, not noise
 print(f"\nRMSE/MAE ratio = {rmse_rf/mae_rf:.2f}  "
       f"(1.0 would mean every county is missed by the same amount)")
@@ -243,7 +253,8 @@ fig, (a1, a2) = plt.subplots(1, 2, figsize=(12.5, 5.2))
 a1.scatter(yte, pred_te, s=10, alpha=0.4, color="#2a78d6", edgecolors="none")
 lims = [min(yte.min(), pred_te.min()), max(yte.max(), pred_te.max())]
 a1.plot(lims, lims, ls="--", color="#e34948", lw=1.3)
-a1.set_xlabel("actual upward mobility"); a1.set_ylabel("predicted upward mobility")
+a1.set_xlabel("actual upward mobility")
+a1.set_ylabel("predicted upward mobility")
 a1.set_title(f"Held-out predictions\nR² = {r2_rf:.2f}   MAE = {mae_rf:.4f}   RMSE = {rmse_rf:.4f}",
              fontsize=11.5, weight="bold")
 a1.text(0.03, 0.95, "points on the line = perfect prediction", transform=a1.transAxes,
@@ -251,8 +262,10 @@ a1.text(0.03, 0.95, "points on the line = perfect prediction", transform=a1.tran
 top = imp.tail(10)
 a2.barh(range(len(top)), top.values, color=["#e34948" if n in ("Minority", "Limited English")
         else "#2a78d6" for n in top.index], edgecolor="white")
-a2.set_yticks(range(len(top))); a2.set_yticklabels(top.index, fontsize=9)
-a2.set_xlabel("share of predictive power"); a2.grid(axis="y", visible=False)
+a2.set_yticks(range(len(top)))
+a2.set_yticklabels(top.index, fontsize=9)
+a2.set_xlabel("share of predictive power")
+a2.grid(axis="y", visible=False)
 a2.set_title("What the model leans on", fontsize=11.5, weight="bold")
 a2.text(0.97, 0.05, "red = demographic feature", transform=a2.transAxes,
         fontsize=8.5, color="#e34948", ha="right")
@@ -268,7 +281,8 @@ df["pred"] = cross_val_predict(RandomForestRegressor(n_estimators=300, random_st
                                                      n_jobs=-1), Xs, y, cv=5)
 df["residual"] = df["MOBILITY"] - df["pred"]
 big = df[df.E_TOTPOP >= 50_000].copy()   # small-county mobility estimates are noisy
-over = big.nlargest(12, "residual"); under = big.nsmallest(12, "residual")
+over = big.nlargest(12, "residual")
+under = big.nsmallest(12, "residual")
 print(f"\n=== resilience (counties >= 50k people, n={len(big)}) ===")
 print("beating their profile:", ", ".join(f"{r.COUNTY} {r.ST_ABBR}" for _, r in over.head(5).iterrows()))
 print("falling short:       ", ", ".join(f"{r.COUNTY} {r.ST_ABBR}" for _, r in under.head(5).iterrows()))
@@ -279,16 +293,19 @@ labels = [f"{r.COUNTY}, {r.ST_ABBR}" for _, r in show.iterrows()]
 ax.barh(range(len(show)), show.residual.values,
         color=["#e34948" if v < 0 else "#1baf7a" for v in show.residual],
         edgecolor="white")
-ax.set_yticks(range(len(show))); ax.set_yticklabels(labels, fontsize=8.5)
+ax.set_yticks(range(len(show)))
+ax.set_yticklabels(labels, fontsize=8.5)
 ax.axvline(0, color=INK, lw=1)
 ax.set_xlabel("actual mobility minus predicted mobility")
 ax.set_title("Which counties outperform what their conditions predict?",
              fontsize=13, weight="bold", pad=10)
-ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
+ax.grid(axis="y", visible=False)
+ax.set_axisbelow(True)
 fig.text(0.5, -0.01, "Green = poor kids do better here than the model expects given local conditions. "
          "Counties under 50,000 people excluded (noisy estimates).",
          ha="center", fontsize=8.5, color=MUT)
-fig.tight_layout(); fig.savefig(f"{OUT}/7_resilience.png", bbox_inches="tight")
+fig.tight_layout()
+fig.savefig(f"{OUT}/7_resilience.png", bbox_inches="tight")
 print("saved figures/7_resilience.png")
 
 # --- 8. bias probe: what happens if we drop the demographic features? --------
@@ -316,13 +333,16 @@ panels = [(cent[shared], f"All 17 inputs\nsilhouette {sil_full:.3f}", LABELS),
 for a, (cent_x, ttl, xlab) in zip(axes, panels):
     M = cent_x.T.values
     im = a.imshow(M, cmap=DIVERGE, vmin=-1.6, vmax=1.6, aspect="auto")
-    a.set_xticks(range(K)); a.set_xticklabels(xlab, fontsize=9)
-    a.set_title(ttl, fontsize=11.5, weight="bold"); a.grid(False)
+    a.set_xticks(range(K))
+    a.set_xticklabels(xlab, fontsize=9)
+    a.set_title(ttl, fontsize=11.5, weight="bold")
+    a.grid(False)
     for i in range(M.shape[0]):
         for j in range(M.shape[1]):
             a.text(j, i, f"{M[i, j]:+.1f}", ha="center", va="center", fontsize=7.5,
                    color="white" if abs(M[i, j]) > 1.0 else INK)
-axes[0].set_yticks(range(len(shared))); axes[0].set_yticklabels(shared, fontsize=9)
+axes[0].set_yticks(range(len(shared)))
+axes[0].set_yticklabels(shared, fontsize=9)
 fig.suptitle("Does the structure survive without the demographic features?",
              fontsize=14, weight="bold")
 fig.colorbar(im, ax=axes, shrink=0.55, label="above / below US average")
@@ -335,6 +355,9 @@ fig.text(0.5, 0.015, f"Dropping the two demographic inputs changes separation qu
 fig.savefig(f"{OUT}/8_bias_probe.png", bbox_inches="tight")
 print("saved figures/8_bias_probe.png")
 
-df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "E_TOTPOP", "RPL_THEMES", "MOBILITY",
-    "pred", "residual", "cluster"]].to_csv(f"{OUT}/combined_clusters.csv", index=False)
+# rounded so the file is byte-stable between runs. n_jobs=-1 sums trees in
+# whatever order they finish, which wobbles pred at ~1e-16 and churns the diff.
+out = df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "E_TOTPOP", "RPL_THEMES", "MOBILITY",
+          "pred", "residual", "cluster"]].round({"pred": 6, "residual": 6})
+out.to_csv(f"{OUT}/combined_clusters.csv", index=False)
 print("saved figures/combined_clusters.csv (now with predictions + residuals)")

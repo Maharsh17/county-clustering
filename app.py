@@ -199,7 +199,7 @@ def main():
     if "sel" not in st.session_state:
         st.session_state.sel = ("Champaign County, IL" if "Champaign County, IL" in names
                                 else names[0])
-    # a click is applied once; after that the dropdown wins, otherwise the last
+    # a click is applied once. After that the dropdown wins, otherwise the last
     # click would keep overriding every manual selection on each rerun
     ev = st.session_state.get("usmap")
     if ev and ev.get("selection", {}).get("points"):
@@ -264,8 +264,8 @@ def main():
 
         st.markdown("**Most similar counties**")
         for j in nb:
-            st.markdown(f"○ **{df.at[j, 'name']}** · Type {int(df.at[j, 'type']) + 1} "
-                        f"· mobility {df.at[j, 'MOBILITY']:.3f}")
+            st.markdown(f"○ **{df.at[j, 'name']}**, Type {int(df.at[j, 'type']) + 1}"
+                        f", mobility {df.at[j, 'MOBILITY']:.3f}")
         st.caption(f"Similarity uses all {len(active)} active measures at once. Geography is "
                    "not one of them.")
 
@@ -303,7 +303,7 @@ def main():
             st.markdown(
                 f"<div style='border-left:7px solid {PAL[t]};padding:2px 0 2px 11px;"
                 f"margin-bottom:6px'><b>Type {t+1}</b> &nbsp;"
-                f"<span style='color:#8a8a86'>{len(sub):,} counties · mobility "
+                f"<span style='color:#8a8a86'>{len(sub):,} counties, mobility "
                 f"{sub.MOBILITY.mean():.3f}</span></div>", unsafe_allow_html=True)
             st.markdown(f"<div style='font-size:0.87rem;margin:-2px 0 4px 18px'>"
                         f"{describe(cent.iloc[t])}</div>", unsafe_allow_html=True)
