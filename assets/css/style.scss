@@ -391,3 +391,26 @@ a {
 .site-footer-credits {
   color: $blockquote-text-color;
 }
+
+// ---------------------------------------------------------------------------
+// Project overrides. Appended below the theme rather than editing it, so the
+// block above stays byte-identical to the AI4ALL template.
+// Cayman gives tables no bottom margin, so anything following one crowds it.
+// ---------------------------------------------------------------------------
+
+.main-content {
+  table {
+    margin-bottom: 1.5rem;
+  }
+
+  ol,
+  ul {
+    > li {
+      margin-bottom: 0.5rem;
+
+      > table {
+        margin-top: 0.9rem;
+      }
+    }
+  }
+}
