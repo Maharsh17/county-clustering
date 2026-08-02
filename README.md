@@ -6,6 +6,8 @@ I go to school at UIUC and I've always seen a very stark difference between Down
 
 ![Four types of US county](figures/4_cluster_map.png)
 
+**[Try it yourself](https://county-clustering.streamlit.app)**: uncheck any measure in the sidebar and the model refits in front of you. Drop Minority and Limited English and watch how little changes.
+
 ---
 
 ## Problem Statement <!--- do not change this line -->
@@ -178,6 +180,8 @@ python -m venv .venv
 | `figures/combined_clusters.csv` | Every county with its type, prediction, and residual |
 
 In the app, every sidebar checkbox removes a measure and refits everything. Unchecking Minority and Limited English reproduces the bias probe live, and the silhouette readout shows you the delta.
+
+The hosted copy runs on Streamlit Community Cloud, pointed at this repo's `main`, so it redeploys on every push. GitHub Pages serves the write-up you are reading, but it only serves static files and cannot run the app itself.
 
 ## Authors <!--- do not change this line -->
 
