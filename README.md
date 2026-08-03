@@ -200,15 +200,21 @@ There are three places bias gets into this pipeline, and the algorithm is not an
 - **Puerto Rico is out of scope.** Its 78 municipios appear in the Opportunity Atlas but never entered the merge, since the NCHS scheme covers states and DC only.
 - **The four names are editorial.** See the bias probe.
 
-### How the Project Changed
+### Datasets Used
 
-The original proposal was to cluster **CDC PLACES 2024**, which is 40 measures of disease and access to care. The dataset changed partway through, and the reason was already sitting in that same proposal. It flagged that PLACES values are *modeled estimates* built from a survey plus demographics rather than actual counts. That turns out to be fatal for clustering. If two counties look demographically similar, the model that generated PLACES gives them similar health numbers by construction, so clustering PLACES risks rediscovering the imputation model instead of learning anything about health.
+Everything here comes from three public sources, joined on 5 digit county FIPS. Full provenance and links are in Data Sources below. This table is about what each one actually does inside the models.
 
-Switching to the **CDC/ATSDR Social Vulnerability Index**, which is built from American Community Survey counts, and joining it to county upward mobility estimates bought something PLACES could never have offered. An actual outcome variable. Every PLACES column is one more description of a county. Mobility is a result. Having one made the supervised model, the residual analysis, and the resilience ranking possible at all.
+| Source | Columns it contributes | What the models do with it |
+|---|---|---|
+| **CDC/ATSDR Social Vulnerability Index** | 16 `EP_*` measures | Clustering inputs and the random forest's only predictors |
+| | `RPL_THEMES` | Context only, never fed to a model |
+| | `E_TOTPOP` | Filters the resilience ranking down to counties over 50,000 |
+| | `FIPS`, `COUNTY`, `ST_ABBR` | Identifiers and the join key |
+| **Opportunity Atlas** | `MOBILITY` | Both a clustering input and the random forest's target |
+| **NCHS Urban-Rural 2023** | `CODE2023` | External validation, plus it sits in the row filter |
+| **Plotly county GeoJSON** | boundary polygons | Map shapes at runtime, and centroids for the app's neighbour markers |
 
-The hardest problem along the way was those four K selection tests disagreeing completely. The fix was to stop treating it as a question with one right answer, report all four disagreements openly, and choose on the strength of how K=4 holds up across every test at once rather than how it does on any single one.
-
-A second method got run as a check, and it is worth being clear that it did not simply rubber stamp the answer. Ward hierarchical clustering puts its widest gap at two groups, same as silhouette and Calinski-Harabasz do. Four is a judgement call that the numbers support without ever insisting on it, and an earlier draft of this write up claimed the dendrogram backed four directly. That claim was wrong and it has been corrected rather than quietly dropped.
+That is 23 columns in the merged file, 18 substantive variables, and 17 of them reaching the clustering model. The one that does not is `CODE2023`, which is the reason it can serve as an outside check on whether the types mean anything.
 
 ## Data Sources
 
