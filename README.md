@@ -37,7 +37,7 @@ There is a second problem sitting underneath the first one, and honestly it is t
 
 4. **The 40% the model misses is where the interesting stuff lives.** RMSE runs 1.40 times MAE, meaning a small number of counties get missed badly. Ranking counties by how far they beat their own prediction surfaces Stearns County MN, Ector County TX, and Starr County TX as places doing noticeably better for their poor kids than their conditions would suggest. A severity ranking buries every one of them somewhere in the middle.
 
-5. **Four statistical tests for the number of clusters gave four different answers** (silhouette 2, Calinski-Harabasz 2, Davies-Bouldin 9, elbow 3). The project runs 4 anyway and explains why below. Ward hierarchical clustering, which never sees K at all, finds a real gap at the four way cut.
+5. **Four statistical tests for the number of clusters gave four different answers** (silhouette 2, Calinski-Harabasz 2, Davies-Bouldin 9, elbow 3). The project runs 4 anyway and explains why below. Ward hierarchical clustering, which never sees K at all, does not settle it either. Its widest gap is at two groups, not four, and it only agrees with the K-Means grouping moderately once you cut it at four.
 
 6. **[A live interactive version](https://county-clustering.streamlit.app)** lets anybody refit the model themselves. Every checkbox drops a measure and redraws the map, so the claim that these groups depend on what got measured is something you can go test rather than something you have to take on faith.
 
@@ -49,7 +49,7 @@ There is a second problem sitting underneath the first one, and honestly it is t
 |---|---|---|---|
 | **K-Means** | 16 SVI measures plus mobility, standardized | one type label per county | Centroids read directly as a profile |
 | **PCA** | the same 17 standardized features | 2 components | Only used to draw clusters in 2-D |
-| **Ward hierarchical** | the same 17 features | dendrogram | Tests whether 4 is a real seam, without using K |
+| **Ward hierarchical** | the same 17 features | dendrogram | An independent read on the structure, built without ever using K |
 | **Random forest** | the 16 SVI measures only | predicted mobility plus importances | Do the inputs predict the outcome at all? |
 
 Every feature gets standardized to mean 0 and standard deviation 1 before clustering. K-Means measures straight line distance, so raw percentages would let whichever column happened to have the widest range quietly run the whole show. Clusters then get renumbered by mean mobility after fitting, which keeps Type 1 as the lowest mobility group on every single run no matter what order K-Means felt like assigning its labels in.
@@ -104,6 +104,17 @@ Four is a choice, not a seam the data insists on. Both methods agree the coarses
 Each type then becomes a profile of z-scores, which is more or less the entire model in one picture.
 
 ![The types](figures/3_combined_cluster_profiles.png)
+
+**A check the model never saw.** The NCHS urban-rural code is in the dataset but is not a clustering input, so nothing about it could have influenced where the group boundaries landed. If the types are picking up something real, they should still separate on it.
+
+| Type | Mean NCHS code | Share that are metro |
+|---|---|---|
+| 1. Rural hardship | 5.11 | 5% |
+| 2. Costly big metros | 3.23 | 33% |
+| 3. Immigrant gateways | 4.63 | 14% |
+| 4. Comfortable America | 4.91 | 11% |
+
+The scale runs from 1 for a large central metro to 6 for rural non core. Costly big metros comes out as the most urban group by a wide margin and Rural hardship as the most rural, which is the outside evidence that those two names describe something rather than just sounding good. It is the only external validation in the project.
 
 **Evaluating the supervised model.** An 80/20 train test split, scored only on data the model never got to see.
 
@@ -165,7 +176,9 @@ The original proposal was to cluster **CDC PLACES 2024**, which is 40 measures o
 
 Switching to the **CDC/ATSDR Social Vulnerability Index**, which is built from American Community Survey counts, and joining it to county upward mobility estimates bought something PLACES could never have offered. An actual outcome variable. Every PLACES column is one more description of a county. Mobility is a result. Having one made the supervised model, the residual analysis, and the resilience ranking possible at all.
 
-The hardest problem along the way was those four K selection tests disagreeing completely. The fix was to stop treating it as a question with one right answer, report all four disagreements openly, choose on interpretability grounds, and then validate with a second method built on entirely different principles.
+The hardest problem along the way was those four K selection tests disagreeing completely. The fix was to stop treating it as a question with one right answer, report all four disagreements openly, and choose on the strength of how K=4 holds up across every test at once rather than how it does on any single one.
+
+A second method got run as a check, and it is worth being clear that it did not simply rubber stamp the answer. Ward hierarchical clustering puts its widest gap at two groups, same as silhouette and Calinski-Harabasz do. Four is a judgement call that the numbers support without ever insisting on it, and an earlier draft of this write up claimed the dendrogram backed four directly. That claim was wrong and it has been corrected rather than quietly dropped.
 
 ## Data Sources
 
