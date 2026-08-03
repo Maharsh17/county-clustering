@@ -1,6 +1,6 @@
 # What Kind of Place Is Your County?
 
-This project sorts 3,128 US counties into a handful of types, using 16 social vulnerability measures and one number that matters a lot, which is how much money kids raised poor in a place go on to earn as adults. Then it spends most of its energy on a harder question. Are those groups real, or are they just an artifact of what somebody decided to measure? Built with K-Means clustering, hierarchical validation, and a supervised random forest, in Python with scikit-learn and Streamlit.
+This project sorts 3,128 US counties across 49 states and DC into a handful of types, using 16 social vulnerability measures and one number that matters a lot, which is how much money kids raised poor in a place go on to earn as adults. Then it spends most of its energy on a harder question. Are those groups real, or are they just an artifact of what somebody decided to measure? Built with K-Means clustering, hierarchical validation, and a supervised random forest, in Python with scikit-learn and Streamlit.
 
 I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 376 miles apart. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
 
@@ -137,11 +137,13 @@ There are three places bias gets into this pipeline, and the algorithm is not an
 
 ### Limitations
 
-- **Mobility is historical.** These estimates follow children born around 1978 to 1983. They describe the county those kids grew up in, which is not necessarily the county standing there today.
+- **Mobility is historical.** The mobility numbers track people who were 31 to 37 years old in 2014 and 2015, so they were born somewhere around 1977 to 1984 and grew up in the 1980s and 1990s. They describe the county those kids were raised in, which is not necessarily the county standing there today. The vulnerability measures and the urban-rural codes are current, so a place that was rural then and is exurban now carries today's label next to yesterday's outcome.
 - **Small counties are noisy.** Estimates for low population counties rest on very few children. The resilience ranking drops anything under 50,000 people, and the raw figures do not.
 - **Correlation only.** An R² of 0.60 says the features track the outcome. Nothing here shows that changing a county's unemployment rate would change what its children earn.
 - **County averages hide neighborhoods.** Cook County contains some of the highest and lowest mobility tracts in the country and shows up here as a single dot.
-- **Coverage.** The analysis covers 3,128 of roughly 3,143 US counties. Eleven are missing from the merged file to begin with and four more got dropped for missing values. Nobody has audited which ones yet, and a systematic absence would bias the whole thing.
+- **Connecticut is missing entirely.** This one is worth stating plainly. The analysis covers 3,128 counties across 49 states plus DC, and not one of them is in Connecticut. The 2023 delineation replaced Connecticut's eight counties with nine planning regions and issued new FIPS codes for them, while the Opportunity Atlas still publishes against the old county codes. The join found no match and the whole state fell out silently. Every national claim here should be read as a claim about 49 states.
+- **Four more counties dropped for a missing outcome.** Petroleum County MT, Arthur County NE, King County TX and Loving County TX all lack a mobility estimate. These are among the least populated counties in the country, so the Opportunity Atlas suppressed their numbers for small sample size. That absence is systematic rather than random, and it points the same direction as the small county noise problem above.
+- **Puerto Rico is out of scope.** Its 78 municipios appear in the Opportunity Atlas but never entered the merge, since the NCHS scheme covers states and DC only.
 - **The four names are editorial.** See the bias probe.
 
 ### How the Project Changed
@@ -225,7 +227,7 @@ The underlying data is public and carries its own terms. See the Data Sources se
 
 | What | By when |
 |---|---|
-| Audit which 15 counties are missing and whether their absence is systematic | |
+| Rebuild the Connecticut join using a planning region to county FIPS crosswalk so the state stops being missing | |
 | Weight counties by population in the resilience ranking so it stops favoring small places | |
 | Record the demo video | |
 
