@@ -209,15 +209,18 @@ dendrogram(Z, truncate_mode="lastp", p=30, ax=ax, color_threshold=Z[-(K - 1), 2]
 ax.axhline(Z[-(K - 1), 2], color="#e34948", ls="--", lw=1.4)
 ax.text(0.01, Z[-(K - 1), 2], f"  cut here = {K} groups", color="#e34948",
         fontsize=9.5, va="bottom", transform=ax.get_yaxis_transform())
-ax.set_title("A second method, built differently, also lands on four groups",
+gap4 = Z[-3, 2] - Z[-4, 2]
+gap2 = Z[-1, 2] - Z[-2, 2]
+ax.set_title("A second opinion, and it does not simply agree",
              fontsize=14, weight="bold", pad=10)
-ax.set_ylabel("Ward merge cost\n(not a distance: scales with cluster size)")
+ax.set_ylabel("Ward merge cost\n(not a distance, it scales with cluster size)")
 ax.set_xlabel("counties (bottom 30 branches merged)")
 ax.grid(False)
-fig.text(0.5, -0.02, f"Ward linkage merges counties bottom-up and never uses K. The four-way cut "
-         f"sits below a long vertical gap, so four is a real seam in the data. It only partly "
-         f"reproduces the K-Means grouping (adjusted Rand index = {ari_hier:.2f}), which tells us "
-         "the seam is real but where exactly the lines fall is method-dependent.",
+fig.text(0.5, -0.02, f"Ward merges counties bottom-up and never uses K. Its widest gap is at TWO "
+         f"groups ({gap2:.0f} units of empty tree), not four. The four-way cut sits in a crowded "
+         f"stretch with only {gap4:.1f} units under it, so the dendrogram does not independently "
+         f"argue for four. What it does show is moderate agreement with K-Means once you cut there "
+         f"(adjusted Rand index = {ari_hier:.2f}).",
          ha="center", fontsize=8.5, color=MUT)
 fig.tight_layout()
 fig.savefig(f"{OUT}/5_dendrogram.png", bbox_inches="tight")

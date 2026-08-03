@@ -80,7 +80,11 @@ There is an interpretability argument sitting on top of the numbers too. K=2 spl
 
 ![Choosing K](figures/2_optimal_k_tests.png)
 
-That choice did not just get taken on faith either. Ward linkage, built from the bottom up and never told about K, shows a long vertical gap right where the four way cut lands. It only partly reproduces the K-Means grouping (adjusted Rand index 0.43), which says the seam at four is real but that exactly where the lines fall depends on which method you asked. That is a limitation, not a footnote.
+Ward hierarchical clustering gives a second opinion, and the honest report is that it came back more mixed than helpful. Ward builds the tree from the bottom up and never sees K at all, so whatever it says is independent. Its own clearest break is at two groups, where the tree runs 45.5 units with no merges at all before everything finally joins. The four way cut sits somewhere much more crowded, in a stretch where five, four and three groups all happen within about five units of each other. The gap under a four way cut is 3.2, which is the fourth widest of the options rather than the first.
+
+So the dendrogram does not independently vote for four. What it does say is that cutting it at four produces groups that moderately match the K-Means ones, at an adjusted Rand index of 0.43, and that the immigrant gateway group survives almost intact across both methods at 177 counties against 196. Ward's main disagreement is that it lumps most of Comfortable America together with a large slice of Rural hardship, which K-Means keeps apart.
+
+Four is a choice, not a seam the data insists on. Both methods agree the coarsest real structure is two groups, and both were overruled here for the same reason, which is that two groups is a ranking wearing a different hat.
 
 ![Dendrogram](figures/5_dendrogram.png)
 
