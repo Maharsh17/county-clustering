@@ -58,6 +58,15 @@ Every feature gets standardized to mean 0 and standard deviation 1 before cluste
 
 **Choosing K.** Follow the four tests to the letter and they send you three different directions. Silhouette and Calinski-Harabasz both point at K=2. The elbow points at K=3. Davies-Bouldin points all the way out at K=9. No value of K wins on every test, so treating this as a rule to obey does not actually settle anything.
 
+Each test is asking its own question, which is exactly why they disagree.
+
+| Test | What it actually measures | Wants |
+|---|---|---|
+| **Silhouette** | How much closer the average county sits to its own group than to the nearest rival group, scored from -1 to 1 | higher |
+| **Calinski-Harabasz** | How much of the total spread in the data sits between the groups rather than inside them | higher |
+| **Davies-Bouldin** | How badly each group overlaps with whichever neighbour it resembles most, averaged over all of them | lower |
+| **Elbow (inertia)** | Total squared distance from every county to its own group centre, which always falls as K rises, so the signal is where it stops falling fast | the bend |
+
 Reading all four together is a different exercise, and it has more in common with art than with arithmetic.
 
 | K | Inertia | Silhouette | Calinski-Harabasz | Davies-Bouldin |
