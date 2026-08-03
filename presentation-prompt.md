@@ -65,7 +65,7 @@ the rural South. Type 3 lands on the border and the coastal port metros.
 
 SLIDE 8 - "Champaign County's five closest matches are all college towns."
 Ingham Michigan, Alachua Florida, Tippecanoe Indiana, Johnson Iowa,
-Charlottesville City Virginia. They sit an average of 377 miles apart. Nobody told
+Charlottesville City Virginia. They sit an average of 377 miles from Champaign. Nobody told
 the model that universities exist. It found them from poverty rates, housing
 and age structure alone.
 

@@ -2,7 +2,7 @@
 
 This project sorts 3,128 US counties across 49 states and DC into a handful of types, using 16 social vulnerability measures plus how much money kids raised poor in a place go on to earn as adults. Then it spends most of its energy on a harder question. Are those groups real, or just an artifact of what somebody decided to measure? Built with K-Means, hierarchical validation and a random forest, in Python with scikit-learn and Streamlit.
 
-I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 377 miles apart. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
+I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 377 miles from Champaign, and 579 miles from each other. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
 
 ![Four types of US county](figures/4_cluster_map.png)
 
@@ -21,7 +21,7 @@ It is a rank, not dollars, always between 0 and 1. A county at 0.50 raised poor 
 | National average | 0.430 | |
 | Highest county | 0.688 | Harding County, South Dakota |
 
-The whole national range fits inside half a point, so a 0.08 gap between two types is far bigger than it looks. Worst county to best is 53 percentile points in where a poor kid ends up. Champaign sits under the national average, which is a useful reminder that a county full of university is not automatically a county that lifts its own poor kids.
+Worst county to best is 53 percentile points in where a poor kid ends up, but the extremes are lonely. The middle 90% of counties are packed between 0.345 and 0.550, a band about a fifth of a point wide. That is why a 0.08 gap between two types is far bigger than it looks. It covers roughly 40% of the range almost every county actually lives in, or about 1.3 standard deviations. Champaign sits under the national average, which is a useful reminder that a county full of university is not automatically a county that lifts its own poor kids.
 
 ---
 
@@ -102,7 +102,7 @@ K=4 wins nothing outright. It is the only value that holds up on all four at onc
 
 ![Choosing K](figures/2_optimal_k_tests.png)
 
-Ward hierarchical clustering is a second opinion that never sees K, and it came back mixed. Its clearest break is at two groups, with 45.5 units of empty tree before the final merge. The four way cut has 3.2 units under it, fourth widest of the options, sitting in a crowded stretch where five, four and three groups all happen within about five units.
+Ward hierarchical clustering is a second opinion that never sees K, and it came back mixed. Its clearest break is at two groups, with 45.5 units of empty tree before the final merge. The four way cut has 3.2 units under it, fourth widest of the options, sitting in a crowded stretch where the gaps under five, four and three groups all fall within four units of each other.
 
 So the dendrogram does not vote for four. What it does show is moderate agreement once cut there, at an adjusted Rand index of 0.43. Immigrant gateways is the group that travels best between the two methods, though even it is not a clean match. Ward finds 177 counties where K-Means finds 196, and 127 of them are the same counties, so about two thirds of the group holds and the rest scatters. Ward's real disagreement is bigger than that. It lumps 94% of Comfortable America together with 44% of Rural hardship into one group of 1,794. Four is a choice, not a seam the data insists on.
 
@@ -153,7 +153,9 @@ RMSE comes out 1.40 times MAE. Because RMSE squares errors before averaging, tha
 | 3. Immigrant gateways | 0.410 | 0.422 | **+0.0120** | **61%** |
 | 4. Comfortable America | 0.464 | 0.470 | +0.0056 | 52% |
 
-Immigrant gateways is the standout. It carries the heaviest vulnerability load of any type and its kids still beat the prediction. Rural hardship misses low. Both hold when small counties are excluded.
+Immigrant gateways is the standout. It carries the heaviest vulnerability load of any type and its kids still beat the prediction. Rural hardship misses low. Both hold when small counties are excluded, at +0.0079 and -0.0109.
+
+Comfortable America does not hold, and it is worth saying so. Drop everything under 50,000 people and its residual flips from +0.0056 to -0.0124, with only a third of what is left beating its prediction. The positive number in that table is coming from small counties. Whatever is going right in that type is not going right in its cities.
 
 Tree models shrink toward the mean, which would fake exactly this by handing positive residuals to every low prediction. The correlation between prediction and residual is +0.02 and there is no drift across quintiles, so shrinkage does not explain it. Something the 16 measures miss is happening in those counties.
 
@@ -169,7 +171,7 @@ One caveat. Mobility is a clustering input and the forest's target at the same t
 | Counties keeping their type | | **66.8%** |
 | Adjusted Rand index vs original | | **0.735** |
 
-Immigrant gateways does not disappear when the demographic columns come out. It moves. 77% of those 196 counties regroup into the second panel from the left in the figure above, a group of 236 defined by crowded housing (+1.8), being uninsured (+1.8), and single parenthood (+1.6). The same places, described by what they are up against instead of by who lives there.
+Immigrant gateways does not disappear when the demographic columns come out. It moves. 77% of those 196 counties regroup into the second column of the right hand panel above, a group of 236 defined by crowded housing (+1.8), being uninsured (+1.8), and single parenthood (+1.6). The same places, described by what they are up against instead of by who lives there.
 
 It shifts columns because types get renumbered by mean mobility on every fit, and the regrouped version sits at 0.400 while the costly metros group sits at 0.410. So the group that was third is now second. Worth knowing before comparing the two panels position by position, since they are sorted independently.
 
@@ -194,7 +196,7 @@ There are three places bias gets into this pipeline, and the algorithm is not an
 - **Mobility is historical.** It tracks people aged 31 to 37 in 2014 and 2015, so they grew up in the 1980s and 1990s. The vulnerability measures and urban-rural codes are current, which means a county that was rural then and exurban now carries today's label next to yesterday's outcome.
 - **Small counties are noisy.** Their estimates rest on very few children. The resilience ranking drops anything under 50,000 people. The raw figures do not.
 - **Correlation only.** An R² of 0.60 says the features track the outcome. Nothing here shows that changing a county's unemployment rate would change what its children earn.
-- **County averages hide neighborhoods.** Cook County holds some of the highest and lowest mobility tracts in the country and shows up here as one dot.
+- **County averages hide neighborhoods.** Cook County holds tracts near both ends of the national mobility range and shows up here as a single dot at 0.385, one number standing in for 5.2 million people.
 - **Connecticut is missing entirely.** The 2023 delineation replaced its eight counties with nine planning regions on new FIPS codes, while the Opportunity Atlas still publishes against the old ones. The join found no match and the whole state fell out silently. Every national claim here is really a claim about 49 states plus DC.
 - **Four more counties dropped.** Petroleum MT, Arthur NE, King TX and Loving TX have no mobility estimate, because they are small enough that the Atlas suppressed it. Systematic rather than random, and it points the same way as the noise problem above.
 - **Puerto Rico is out of scope.** Its 78 municipios are in the Atlas but never entered the merge, since NCHS covers states and DC only.
@@ -202,34 +204,34 @@ There are three places bias gets into this pipeline, and the algorithm is not an
 
 ### Datasets Used
 
-Everything here comes from three public sources, joined on 5 digit county FIPS. Full provenance and links are in Data Sources below. This table is about what each one actually does inside the models.
+Three public sources get joined on 5 digit county FIPS to make the dataset, and a fourth supplies map shapes at runtime without ever entering the file. Full provenance and links are in Data Sources below. This table is about what each one actually does inside the models.
 
 | Source | Columns it contributes | What the models do with it |
 |---|---|---|
 | **CDC/ATSDR Social Vulnerability Index** | 16 `EP_*` measures | Clustering inputs and the random forest's only predictors |
 | | `RPL_THEMES` | Context only, never fed to a model |
-| | `E_TOTPOP` | Filters the resilience ranking down to counties over 50,000 |
+| | `E_TOTPOP` | Filters the resilience ranking down to counties of 50,000 and up |
 | | `FIPS`, `COUNTY`, `ST_ABBR` | Identifiers and the join key |
 | **Opportunity Atlas** | `MOBILITY` | Both a clustering input and the random forest's target |
 | **NCHS Urban-Rural 2023** | `CODE2023` | External validation, plus it sits in the row filter |
 | **Plotly county GeoJSON** | boundary polygons | Map shapes at runtime, and centroids for the app's neighbour markers |
 
-That is 23 columns in the merged file, 18 substantive variables, and 17 of them reaching the clustering model. The one that does not is `CODE2023`, which is the reason it can serve as an outside check on whether the types mean anything.
+That is 23 columns in the merged file and 18 substantive variables, which is 16 vulnerability measures plus mobility plus the urban-rural code. Only 17 of them reach the clustering model. The one that does not is `CODE2023`, and that is exactly why it can serve as an outside check on whether the types mean anything.
 
 ## Data Sources
 
 Three datasets got joined on 5 digit county FIPS to build `data/county_svi_mobility.csv`, which carries 23 columns for 3,132 counties.
 
-- **CDC/ATSDR Social Vulnerability Index**, county level. Supplies the 16 `EP_*` estimate fields, the `RPL_THEMES` overall vulnerability percentile, `E_TOTPOP`, and the `FIPS`, `COUNTY` and `ST_ABBR` identifiers. Missing values arrive coded as -999, which is the SVI convention. [atsdr.cdc.gov/place-health/php/svi](https://www.atsdr.cdc.gov/place-health/php/svi/index.html)
+- **CDC/ATSDR Social Vulnerability Index**, county level. Supplies the 16 `EP_*` estimate fields, the `RPL_THEMES` overall vulnerability percentile, `E_TOTPOP`, and the `FIPS`, `COUNTY` and `ST_ABBR` identifiers. SVI codes missing values as -999 rather than leaving them blank, so the pipeline converts those to nulls before anything else runs. This particular extract came through clean and contains none of them. [atsdr.cdc.gov/place-health/php/svi](https://www.atsdr.cdc.gov/place-health/php/svi/index.html)
 - **Opportunity Atlas**, from Opportunity Insights. Supplies `MOBILITY`, which is the variable `kfr_pooled_pooled_p25` taken from `county_outcomes_simple.csv`. It measures the mean household income rank in adulthood for children whose parents sat at the 25th percentile, with those children observed at ages 31 to 37 in 2014 and 2015, pooled across race and gender. Confirmed by joining against the published file, where all 3,128 counties match to zero difference. [opportunityinsights.org](https://opportunityinsights.org/data/)
 - **NCHS Urban-Rural Classification Scheme for Counties, 2023 revision**. Supplies `CODE2023`, running from 1 for large central metro through 6 for non core rural. The official file documentation ships with this repo at `data/2023-File-Documentation-final.pdf`. [cdc.gov/nchs/data-analysis-tools/urban-rural.html](https://www.cdc.gov/nchs/data-analysis-tools/urban-rural.html)
 - **County boundaries** for mapping, from the Plotly sample GeoJSON dataset. These never enter the merged file. They supply map polygons at runtime, and the app averages each polygon to get a centroid for the neighbour markers.
 
-That works out to **18 substantive variables**, which is 16 vulnerability measures plus mobility plus the urban-rural code. Only **17 of them reach the model**, because `CODE2023` is never clustered on. It does two other jobs though. It reports the mean urban-rural level of each type, and it sits in the row filter, so a county missing an NCHS code drops out of the analysis entirely.
+`CODE2023` does two jobs despite never being clustered on. It reports the mean urban-rural level of each type, and it sits in the row filter, so a county missing an NCHS code drops out of the analysis entirely.
 
 ### References
 
-1. Chetty, R., Friedman, J. N., Hendren, N., Jones, M. R., & Porter, S. R. (2026). The Opportunity Atlas: Mapping the childhood roots of social mobility. *American Economic Review, 116*(1), 1-51. [NBER w25147](https://www.nber.org/papers/w25147)
+1. Chetty, R., Friedman, J. N., Hendren, N., Jones, M. R., & Porter, S. R. (2026). The Opportunity Atlas: Mapping the childhood roots of social mobility. *American Economic Review, 116*(1), 1-51. [10.1257/aer.20200108](https://doi.org/10.1257/aer.20200108), also available as [NBER w25147](https://www.nber.org/papers/w25147)
 2. Flanagan, B. E., Gregory, E. W., Hallisey, E. J., Heitgerd, J. L., & Lewis, B. (2011). A social vulnerability index for disaster management. *Journal of Homeland Security and Emergency Management, 8*(1). [10.2202/1547-7355.1792](https://doi.org/10.2202/1547-7355.1792)
 3. Flanagan, B. E., Hallisey, E. J., Adams, E., & Lavery, A. (2018). Measuring community vulnerability to natural and anthropogenic hazards: The CDC's Social Vulnerability Index. *Journal of Environmental Health, 80*(10), 34-36.
 4. Chetty, R., Jackson, M. O., Kuchler, T., Stroebel, J., et al. (2022). Social capital I: Measurement and associations with economic mobility. *Nature, 608*, 108-121. [10.1038/s41586-022-04996-4](https://doi.org/10.1038/s41586-022-04996-4)
@@ -243,8 +245,8 @@ That works out to **18 substantive variables**, which is 16 vulnerability measur
 - **scikit-learn** for K-Means, PCA, the random forest, the train test split, cross validated prediction, and every clustering and regression metric
 - **SciPy** for Ward hierarchical linkage and the dendrogram
 - **pandas** and **NumPy** for data preparation and the z-score profiles
-- **Matplotlib** for the eight static figures
-- **Plotly** for the choropleth maps and the interactive charts
+- **Matplotlib** for seven of the eight static figures
+- **Plotly** for the choropleth maps and every chart in the app, with **Kaleido** rendering the map to PNG
 - **Streamlit** for the live explorer
 
 ### Running It Yourself
@@ -253,21 +255,26 @@ That works out to **18 substantive variables**, which is 16 vulnerability measur
 python -m venv .venv
 ./.venv/bin/python -m pip install -r requirements.txt
 
-./.venv/bin/python analysis.py       # writes all 8 figures plus combined_clusters.csv
+./.venv/bin/python analysis.py       # 8 PNGs, the zoomable map as HTML, and combined_clusters.csv
 ./.venv/bin/python test_app.py       # smoke test for clustering, type ordering, neighbours
 ./.venv/bin/python -m streamlit run app.py
 ```
 
-`analysis.py` takes about a minute, and most of that is the cross validated random forest. Run it before the app, because the app reads the predictions it writes out.
+`analysis.py` takes about 20 seconds. The slowest single step is not the modelling, it is Kaleido starting a headless browser to render the county map to PNG. Run it before the app, because the app reads the predictions it writes out.
 
 | File | What it is |
 |---|---|
 | `analysis.py` | The whole pipeline, top to bottom, 8 figures |
 | `app.py` | The interactive explorer |
 | `test_app.py` | Checks type ordering, ablation wiring, and the neighbour search |
+| `data/county_svi_mobility.csv` | The merged input, 3,132 counties and 23 columns |
 | `figures/combined_clusters.csv` | Every county with its type, prediction, and residual |
+| `presentation-prompt.md` | Working notes for building the slide deck |
+| `docs/` | The original proposal, which planned to cluster CDC PLACES health data. Kept because it is the record of what this project set out to do before the data changed its mind |
 
-Inside the app, every sidebar checkbox removes a measure and refits everything downstream. Unchecking Minority and Limited English reproduces the bias probe live, and the silhouette readout shows the delta as it happens.
+Every run of `analysis.py` produces byte identical output, figures included, so a rerun on unchanged data gives an empty diff.
+
+Four things to do inside the app. Every sidebar checkbox removes a measure and refits everything downstream, and unchecking Minority and Limited English reproduces the bias probe live with the silhouette delta updating as it happens. The slider runs K from 2 to 7, so the argument in Choosing K is something to poke at rather than take on trust. Clicking a county pins it and lights up its five closest matches with the average distance between them. Two panels at the bottom rank counties against their predictions at any population floor and diff any two counties feature by feature.
 
 The hosted copy lives at **[county-clustering.streamlit.app](https://county-clustering.streamlit.app)**, running on Streamlit Community Cloud against this repo's `main`, so it redeploys on every push. GitHub Pages serves the write up you are reading right now, but Pages only serves static files and cannot run the app itself.
 
