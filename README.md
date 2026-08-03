@@ -1,6 +1,6 @@
 # What Kind of Place Is Your County?
 
-This project sorts 3,128 US counties across 49 states and DC into a handful of types, using 16 social vulnerability measures and one number that matters a lot, which is how much money kids raised poor in a place go on to earn as adults. Then it spends most of its energy on a harder question. Are those groups real, or are they just an artifact of what somebody decided to measure? Built with K-Means clustering, hierarchical validation, and a supervised random forest, in Python with scikit-learn and Streamlit.
+This project sorts 3,128 US counties across 49 states and DC into a handful of types, using 16 social vulnerability measures plus how much money kids raised poor in a place go on to earn as adults. Then it spends most of its energy on a harder question. Are those groups real, or just an artifact of what somebody decided to measure? Built with K-Means, hierarchical validation and a random forest, in Python with scikit-learn and Streamlit.
 
 I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 376 miles apart. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
 
@@ -10,9 +10,9 @@ I go to school at UIUC, where the gap between Downtown Champaign and Campus Town
 
 ### What The Mobility Number Means
 
-Mobility shows up all over this write up, so it is worth pinning down before anything else. Take every child whose parents earned at the 25th percentile nationally, which is to say kids who grew up poor. Follow them until they are 31 to 37 years old. Ask where their own household income lands as a percentile of the national distribution. Average that across everyone raised in a given county and you get one number for the place.
+Take every child whose parents earned at the 25th percentile nationally. Follow them to ages 31 to 37. Ask where their own household income lands as a percentile. Average that across everyone raised in a county and you get one number for the place.
 
-So it is a rank, not a dollar figure, and it always sits between 0 and 1. A county scoring 0.50 raised poor kids who ended up dead average as adults. Scoring 0.30 means they mostly stayed near the bottom.
+It is a rank, not dollars, always between 0 and 1. A county at 0.50 raised poor kids who ended up dead average. At 0.30 they mostly stayed near the bottom.
 
 | | Value | Where |
 |---|---|---|
@@ -21,7 +21,7 @@ So it is a rank, not a dollar figure, and it always sits between 0 and 1. A coun
 | National average | 0.430 | |
 | Highest county | 0.688 | Harding County, South Dakota |
 
-The whole national range fits inside about half a point, so a gap of 0.08 between two types is a lot bigger than it looks. Between the worst county and the best sits a difference of roughly 53 percentile points in where a poor kid ends up, decided largely by where they happened to grow up. Champaign lands slightly under the national average, which is a useful reminder that a county full of a university is not automatically a county that lifts its own poor kids.
+The whole national range fits inside half a point, so a 0.08 gap between two types is far bigger than it looks. Worst county to best is 53 percentile points in where a poor kid ends up. Champaign sits under the national average, which is a useful reminder that a county full of university is not automatically a county that lifts its own poor kids.
 
 ---
 
@@ -82,7 +82,7 @@ Each test is asking its own question, which is exactly why they disagree.
 | **Davies-Bouldin** | How badly each group overlaps with whichever neighbour it resembles most, averaged over all of them | lower |
 | **Elbow (inertia)** | Total squared distance from every county to its own group centre, which always falls as K rises, so the signal is where it stops falling fast | the bend |
 
-Reading all four together is a different exercise, and it has more in common with art than with arithmetic.
+Reading all four together is a different exercise, closer to art than arithmetic.
 
 | K | Inertia | Silhouette | Calinski-Harabasz | Davies-Bouldin |
 |---|---|---|---|---|
@@ -96,19 +96,15 @@ Reading all four together is a different exercise, and it has more in common wit
 | 9 | 27,727 | 0.1175 | 357.8 | **1.6550** |
 | 10 | 26,848 | 0.1068 | 339.7 | 1.6918 |
 
-Look at K=4 across the whole row instead of one column at a time. The inertia curve is still inside its bend there, and K=4 is the second sharpest turn in the entire sweep behind K=3. Silhouette sits at 0.1549, which is the third highest of the nine values tested. Calinski-Harabasz sits at 496.4, also third highest. Davies-Bouldin comes in at 1.7353, and that is a real local minimum, lower than K=3 at 1.8685 and lower than K=5 at 1.8711.
+Read the K=4 row across instead of one column at a time. Inertia is still inside its bend and K=4 is the second sharpest turn in the sweep. Silhouette and Calinski-Harabasz are both third highest of the nine. Davies-Bouldin hits a genuine local minimum, under K=3 and under K=5.
 
-So K=4 does not win any single test outright. What it does is hold up on all four at the same time, which none of the individual winners manage. K=2 takes the best silhouette in the sweep and the worst Davies-Bouldin score in the sweep. K=9 takes the best Davies-Bouldin and very nearly the worst silhouette. Those are metrics optimizing for their own definition of a good cluster rather than agreeing with each other.
-
-There is an interpretability argument sitting on top of the numbers too. K=2 splits American counties into doing fine and not doing fine, which is the cleanest split statistically and completely useless analytically, because it is the same ranking this whole project was trying to get away from. K=9 produces groups too small to fund. K=4 lands where the arithmetic is still healthy and the output is something a person could actually act on.
+K=4 wins nothing outright. It is the only value that holds up on all four at once, which no single-test winner manages. K=2 takes the best silhouette and the worst Davies-Bouldin in the whole sweep. K=9 takes the best Davies-Bouldin and nearly the worst silhouette. On top of that, K=2 splits counties into doing fine and not doing fine, which is the same ranking this project set out to escape, and K=9 makes groups too small to fund.
 
 ![Choosing K](figures/2_optimal_k_tests.png)
 
-Ward hierarchical clustering gives a second opinion, and the honest report is that it came back more mixed than helpful. Ward builds the tree from the bottom up and never sees K at all, so whatever it says is independent. Its own clearest break is at two groups, where the tree runs 45.5 units with no merges at all before everything finally joins. The four way cut sits somewhere much more crowded, in a stretch where five, four and three groups all happen within about five units of each other. The gap under a four way cut is 3.2, which is the fourth widest of the options rather than the first.
+Ward hierarchical clustering is a second opinion that never sees K, and it came back mixed. Its clearest break is at two groups, with 45.5 units of empty tree before the final merge. The four way cut has 3.2 units under it, fourth widest of the options, sitting in a crowded stretch where five, four and three groups all happen within about five units.
 
-So the dendrogram does not independently vote for four. What it does say is that cutting it at four produces groups that moderately match the K-Means ones, at an adjusted Rand index of 0.43, and that the immigrant gateway group survives almost intact across both methods at 177 counties against 196. Ward's main disagreement is that it lumps most of Comfortable America together with a large slice of Rural hardship, which K-Means keeps apart.
-
-Four is a choice, not a seam the data insists on. Both methods agree the coarsest real structure is two groups, and both were overruled here for the same reason, which is that two groups is a ranking wearing a different hat.
+So the dendrogram does not vote for four. What it does show is moderate agreement once cut there, at an adjusted Rand index of 0.43, and that immigrant gateways survives across both methods almost intact at 177 counties against 196. Ward's main disagreement is lumping most of Comfortable America in with a large slice of Rural hardship. Four is a choice, not a seam the data insists on.
 
 ![Dendrogram](figures/5_dendrogram.png)
 
@@ -146,7 +142,7 @@ RMSE comes out 1.40 times MAE. Because RMSE squares errors before averaging, tha
 
 ![Resilience](figures/7_resilience.png)
 
-**Where the two models meet.** The clustering and the random forest run on the same counties but answer different questions, so it is fair to ask what one has to do with the other. The bridge is the residual. Averaging it inside each type asks whether a whole kind of place tends to beat or miss what its conditions predict.
+**Where the two models meet.** The residual is the bridge. Averaging it inside each type asks whether a whole kind of place beats or misses what its conditions predict.
 
 | Type | Predicted | Actual | Residual | Counties above their prediction |
 |---|---|---|---|---|
@@ -155,11 +151,11 @@ RMSE comes out 1.40 times MAE. Because RMSE squares errors before averaging, tha
 | 3. Immigrant gateways | 0.410 | 0.422 | **+0.0120** | **61%** |
 | 4. Comfortable America | 0.464 | 0.470 | +0.0056 | 52% |
 
-Immigrant gateways is the standout. It carries the heaviest vulnerability load of any type, with uninsured at +1.8, crowded housing at +2.3 and no high school diploma at +1.7, and its kids still do better than those numbers predict. Rural hardship runs the other way and misses low. Both patterns hold when the small counties are excluded.
+Immigrant gateways is the standout. It carries the heaviest vulnerability load of any type and its kids still beat the prediction. Rural hardship misses low. Both hold when small counties are excluded.
 
-That gap is worth checking before believing. Tree models shrink toward the mean, which would hand positive residuals to every low prediction automatically and manufacture this result out of nothing. The correlation between predicted value and residual is +0.02, and the mean residual across predicted quintiles shows no drift, so the shrinkage explanation does not hold up. Something the 16 measures do not capture is happening in those counties.
+Tree models shrink toward the mean, which would fake exactly this by handing positive residuals to every low prediction. The correlation between prediction and residual is +0.02 and there is no drift across quintiles, so shrinkage does not explain it. Something the 16 measures miss is happening in those counties.
 
-One caveat on the pairing. Mobility is an input to the clustering and the target of the random forest at the same time, so the types are partly defined by the outcome the forest is trying to predict. That does not invalidate the residual comparison, since the forest never sees a cluster label, but it does mean the two models are not fully independent of each other.
+One caveat. Mobility is a clustering input and the forest's target at the same time, so the types are partly defined by what the forest predicts. The forest never sees a cluster label, so the comparison stands, but the two models are not fully independent.
 
 **Testing the project's own bias.** The entire pipeline gets refit without minority share and limited English, and then the difference gets measured.
 
@@ -177,27 +173,27 @@ Type 3 comes back as a group defined by crowded housing (+1.8), being uninsured 
 
 There are three places bias gets into this pipeline, and the algorithm is not any of them.
 
-**What got measured.** SVI counts minority status as a component of vulnerability. CDC has defensible reasons for that, since these communities really do face compounded barriers during a disaster. But K-Means has no idea *why* a column is sitting in front of it. Standardizing handed all 17 features equal variance, which quietly announced that a county's minority share matters exactly as much as its unemployment rate. Nobody decided that. It was the default.
+**What got measured.** SVI counts minority status as a component of vulnerability, and CDC has defensible reasons, since these communities really do face compounded barriers during a disaster. But K-Means has no idea *why* a column is in front of it. Standardizing gave all 17 features equal variance, quietly announcing that a county's minority share matters exactly as much as its unemployment rate. Nobody decided that. It was the default.
 
-**What the result got called.** The model outputs the integer 2. "Immigrant gateways" came from a person. The probe shows that group is actually held together by crowded housing and lack of insurance, so a more accurate name would be something closer to "high deprivation young metros." The first name that came to mind described who lives somewhere rather than what they are up against, and a policymaker reading it would walk away with a different idea about cause.
+**What the result got called.** The model outputs the integer 2. "Immigrant gateways" came from a person. The probe shows that group is actually held together by crowded housing and lack of insurance, so a truer name is closer to "high deprivation young metros." The first name that came to mind described who lives there rather than what they are up against, and a policymaker would walk away with a different idea about cause.
 
-**What somebody might do with it.** Allocating resources by type means every county in a group gets treated identically. The original proposal listed aggregation bias as a caveat. Acting on these clusters turns that caveat into a mechanism.
+**What somebody might do with it.** Allocating resources by type means every county in a group gets treated identically. Aggregation bias is easy to list as a caveat. Acting on these clusters turns it into a mechanism.
 
-**Mitigation is the whole reason the probe exists.** Writing a disclaimer would have been easy and worthless, so instead there is a test whose result could have gone badly. It partly did. A third of counties change type once the demographic features come out, so those features are not inert. But separation quality does not improve at all, which means there is no performance argument for keeping them. In the live app, the checkboxes that reproduce this experiment are the first thing anyone sees.
+**Mitigation is the whole reason the probe exists.** A disclaimer would have been easy and worthless, so instead there is a test whose result could have gone badly. It partly did. A third of counties change type once the demographic features come out, so they are not inert. But separation does not improve at all, so there is no performance argument for keeping them. In the live app, the checkboxes that reproduce this are the first thing anyone sees.
 
-**The case for doing this.** Typing instead of ranking lets you notice that Type 3 counties carry high vulnerability *and* better than expected mobility, which means copying an intervention from Type 4 into Type 1 might be exactly the wrong move. The residual ranking points at specific counties doing something right, and a severity ranking cannot even ask that question.
+**The case for doing this.** Typing instead of ranking lets you notice that Type 3 carries high vulnerability *and* better than expected mobility, so copying an intervention from Type 4 into Type 1 might be exactly wrong. The residual ranking points at specific counties doing something right, and a severity ranking cannot even ask that.
 
-**The case against.** Four labels stretched over 3,128 counties is a lot of forgetting. "Comfortable America" holds 1,315 counties and plenty of them are not comfortable. A cluster label is a stereotype with a confidence interval that nobody ever prints.
+**The case against.** Four labels over 3,128 counties is a lot of forgetting. "Comfortable America" holds 1,315 counties and plenty of them are not. A cluster label is a stereotype with a confidence interval nobody prints.
 
 ### Limitations
 
-- **Mobility is historical.** The mobility numbers track people who were 31 to 37 years old in 2014 and 2015, so they were born somewhere around 1977 to 1984 and grew up in the 1980s and 1990s. They describe the county those kids were raised in, which is not necessarily the county standing there today. The vulnerability measures and the urban-rural codes are current, so a place that was rural then and is exurban now carries today's label next to yesterday's outcome.
-- **Small counties are noisy.** Estimates for low population counties rest on very few children. The resilience ranking drops anything under 50,000 people, and the raw figures do not.
+- **Mobility is historical.** It tracks people aged 31 to 37 in 2014 and 2015, so they grew up in the 1980s and 1990s. The vulnerability measures and urban-rural codes are current, which means a county that was rural then and exurban now carries today's label next to yesterday's outcome.
+- **Small counties are noisy.** Their estimates rest on very few children. The resilience ranking drops anything under 50,000 people. The raw figures do not.
 - **Correlation only.** An R² of 0.60 says the features track the outcome. Nothing here shows that changing a county's unemployment rate would change what its children earn.
-- **County averages hide neighborhoods.** Cook County contains some of the highest and lowest mobility tracts in the country and shows up here as a single dot.
-- **Connecticut is missing entirely.** This one is worth stating plainly. The analysis covers 3,128 counties across 49 states plus DC, and not one of them is in Connecticut. The 2023 delineation replaced Connecticut's eight counties with nine planning regions and issued new FIPS codes for them, while the Opportunity Atlas still publishes against the old county codes. The join found no match and the whole state fell out silently. Every national claim here should be read as a claim about 49 states.
-- **Four more counties dropped for a missing outcome.** Petroleum County MT, Arthur County NE, King County TX and Loving County TX all lack a mobility estimate. These are among the least populated counties in the country, so the Opportunity Atlas suppressed their numbers for small sample size. That absence is systematic rather than random, and it points the same direction as the small county noise problem above.
-- **Puerto Rico is out of scope.** Its 78 municipios appear in the Opportunity Atlas but never entered the merge, since the NCHS scheme covers states and DC only.
+- **County averages hide neighborhoods.** Cook County holds some of the highest and lowest mobility tracts in the country and shows up here as one dot.
+- **Connecticut is missing entirely.** The 2023 delineation replaced its eight counties with nine planning regions on new FIPS codes, while the Opportunity Atlas still publishes against the old ones. The join found no match and the whole state fell out silently. Every national claim here is really a claim about 49 states plus DC.
+- **Four more counties dropped.** Petroleum MT, Arthur NE, King TX and Loving TX have no mobility estimate, because they are small enough that the Atlas suppressed it. Systematic rather than random, and it points the same way as the noise problem above.
+- **Puerto Rico is out of scope.** Its 78 municipios are in the Atlas but never entered the merge, since NCHS covers states and DC only.
 - **The four names are editorial.** See the bias probe.
 
 ### Datasets Used
