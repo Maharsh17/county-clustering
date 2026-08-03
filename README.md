@@ -2,7 +2,7 @@
 
 This project sorts 3,128 US counties across 49 states and DC into a handful of types, using 16 social vulnerability measures plus how much money kids raised poor in a place go on to earn as adults. Then it spends most of its energy on a harder question. Are those groups real, or just an artifact of what somebody decided to measure? Built with K-Means, hierarchical validation and a random forest, in Python with scikit-learn and Streamlit.
 
-I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 376 miles apart. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
+I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 377 miles apart. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
 
 ![Four types of US county](figures/4_cluster_map.png)
 
@@ -104,7 +104,7 @@ K=4 wins nothing outright. It is the only value that holds up on all four at onc
 
 Ward hierarchical clustering is a second opinion that never sees K, and it came back mixed. Its clearest break is at two groups, with 45.5 units of empty tree before the final merge. The four way cut has 3.2 units under it, fourth widest of the options, sitting in a crowded stretch where five, four and three groups all happen within about five units.
 
-So the dendrogram does not vote for four. What it does show is moderate agreement once cut there, at an adjusted Rand index of 0.43, and that immigrant gateways survives across both methods almost intact at 177 counties against 196. Ward's main disagreement is lumping most of Comfortable America in with a large slice of Rural hardship. Four is a choice, not a seam the data insists on.
+So the dendrogram does not vote for four. What it does show is moderate agreement once cut there, at an adjusted Rand index of 0.43. Immigrant gateways is the group that travels best between the two methods, though even it is not a clean match. Ward finds 177 counties where K-Means finds 196, and 127 of them are the same counties, so about two thirds of the group holds and the rest scatters. Ward's real disagreement is bigger than that. It lumps 94% of Comfortable America together with 44% of Rural hardship into one group of 1,794. Four is a choice, not a seam the data insists on.
 
 ![Dendrogram](figures/5_dendrogram.png)
 
@@ -118,14 +118,16 @@ Each type then becomes a profile of z-scores, which is more or less the entire m
 
 **A check the model never saw.** The NCHS urban-rural code is in the dataset but is not a clustering input, so nothing about it could have influenced where the group boundaries landed. If the types are picking up something real, they should still separate on it.
 
-| Type | Mean NCHS code | Share that are metro |
-|---|---|---|
-| 1. Rural hardship | 5.11 | 5% |
-| 2. Costly big metros | 3.23 | 33% |
-| 3. Immigrant gateways | 4.63 | 14% |
-| 4. Comfortable America | 4.91 | 11% |
+| Type | Mean NCHS code | Share in a large metro (code 1 or 2) | Share metropolitan (codes 1 to 4) |
+|---|---|---|---|
+| 1. Rural hardship | 5.11 | 5% | 23% |
+| 2. Costly big metros | 3.23 | 33% | 80% |
+| 3. Immigrant gateways | 4.63 | 14% | 33% |
+| 4. Comfortable America | 4.91 | 11% | 29% |
 
-The scale runs from 1 for a large central metro to 6 for rural non core. Costly big metros comes out as the most urban group by a wide margin and Rural hardship as the most rural, which is the outside evidence that those two names describe something rather than just sounding good. It is the only external validation in the project.
+The scale runs from 1 for a large central metro to 6 for rural non core, and NCHS treats codes 1 through 4 as metropolitan and 5 and 6 as not. Costly big metros comes out as the most urban group by a wide margin, 80% metropolitan against 23% for Rural hardship, and it is the only type where most counties sit in a metro area at all. That is the outside evidence that those two names describe something rather than just sounding good. It is the only external validation in the project.
+
+The other two types are the honest caveat. Immigrant gateways and Comfortable America land at 33% and 29% metropolitan, close enough that this check says nothing useful about either of them.
 
 **Evaluating the supervised model.** An 80/20 train test split, scored only on data the model never got to see.
 
@@ -167,7 +169,9 @@ One caveat. Mobility is a clustering input and the forest's target at the same t
 | Counties keeping their type | | **66.8%** |
 | Adjusted Rand index vs original | | **0.735** |
 
-Type 3 comes back as a group defined by crowded housing (+1.8), being uninsured (+1.8), and single parenthood (+1.6). The same places, described by what they are up against instead of by who lives there.
+Immigrant gateways does not disappear when the demographic columns come out. It moves. 77% of those 196 counties regroup into the second panel from the left in the figure above, a group of 236 defined by crowded housing (+1.8), being uninsured (+1.8), and single parenthood (+1.6). The same places, described by what they are up against instead of by who lives there.
+
+It shifts columns because types get renumbered by mean mobility on every fit, and the regrouped version sits at 0.400 while the costly metros group sits at 0.410. So the group that was third is now second. Worth knowing before comparing the two panels position by position, since they are sorted independently.
 
 ### How AI/ML Can Amplify or Mitigate Bias Here
 

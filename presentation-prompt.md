@@ -65,7 +65,7 @@ the rural South. Type 3 lands on the border and the coastal port metros.
 
 SLIDE 8 - "Champaign County's five closest matches are all college towns."
 Ingham Michigan, Alachua Florida, Tippecanoe Indiana, Johnson Iowa,
-Charlottesville Virginia. They sit an average of 376 miles apart. Nobody told
+Charlottesville City Virginia. They sit an average of 377 miles apart. Nobody told
 the model that universities exist. It found them from poverty rates, housing
 and age structure alone.
 
@@ -81,7 +81,7 @@ kids still beat the prediction by 0.012, with 61 percent of its counties above
 the line. Rural hardship misses low. Checked against regression to the mean,
 correlation between prediction and residual is 0.02, so it is real.
 
-SLIDE 11 - "We fed the model race, so it handed back a race-shaped group."
+SLIDE 11 - "Feed the model race and it hands back a race-shaped group."
 SVI counts minority status as vulnerability. Out came a cluster at plus 2.0
 minority and plus 2.4 limited English, and a human typed Immigrant gateways
 next to it. So the whole pipeline got refit without those two features.
