@@ -146,6 +146,21 @@ RMSE comes out 1.40 times MAE. Because RMSE squares errors before averaging, tha
 
 ![Resilience](figures/7_resilience.png)
 
+**Where the two models meet.** The clustering and the random forest run on the same counties but answer different questions, so it is fair to ask what one has to do with the other. The bridge is the residual. Averaging it inside each type asks whether a whole kind of place tends to beat or miss what its conditions predict.
+
+| Type | Predicted | Actual | Residual | Counties above their prediction |
+|---|---|---|---|---|
+| 1. Rural hardship | 0.396 | 0.390 | -0.0061 | 40% |
+| 2. Costly big metros | 0.415 | 0.412 | -0.0023 | 46% |
+| 3. Immigrant gateways | 0.410 | 0.422 | **+0.0120** | **61%** |
+| 4. Comfortable America | 0.464 | 0.470 | +0.0056 | 52% |
+
+Immigrant gateways is the standout. It carries the heaviest vulnerability load of any type, with uninsured at +1.8, crowded housing at +2.3 and no high school diploma at +1.7, and its kids still do better than those numbers predict. Rural hardship runs the other way and misses low. Both patterns hold when the small counties are excluded.
+
+That gap is worth checking before believing. Tree models shrink toward the mean, which would hand positive residuals to every low prediction automatically and manufacture this result out of nothing. The correlation between predicted value and residual is +0.02, and the mean residual across predicted quintiles shows no drift, so the shrinkage explanation does not hold up. Something the 16 measures do not capture is happening in those counties.
+
+One caveat on the pairing. Mobility is an input to the clustering and the target of the random forest at the same time, so the types are partly defined by the outcome the forest is trying to predict. That does not invalidate the residual comparison, since the forest never sees a cluster label, but it does mean the two models are not fully independent of each other.
+
 **Testing the project's own bias.** The entire pipeline gets refit without minority share and limited English, and then the difference gets measured.
 
 ![Bias probe](figures/8_bias_probe.png)
