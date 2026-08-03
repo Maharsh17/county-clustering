@@ -5,6 +5,7 @@ Copyright (C) 2026 Maharsh Jani. Licensed under the GNU Affero General
 Public License v3.0 or later. See LICENSE, or <https://www.gnu.org/licenses/>.
 """
 import json
+import textwrap
 from urllib.request import urlopen
 import matplotlib
 matplotlib.use("Agg")
@@ -187,7 +188,9 @@ fig = px.choropleth(
 )
 fig.update_traces(marker_line_width=0)
 fig.update_layout(legend_title_text="County type", title_x=0.5, margin=dict(l=0, r=0, t=50, b=0))
-fig.write_html(f"{OUT}/4_cluster_map.html")
+# ponytail: fixed div_id, otherwise plotly stamps a fresh uuid every run and git
+# sees the whole 16 MB file as changed when nothing about the map moved
+fig.write_html(f"{OUT}/4_cluster_map.html", div_id="county-cluster-map")
 fig.write_image(f"{OUT}/4_cluster_map.png", width=1100, height=700, scale=2)
 print("saved figures/4_cluster_map.html and .png")
 
@@ -216,12 +219,15 @@ ax.set_title("A second opinion, and it does not simply agree",
 ax.set_ylabel("Ward merge cost\n(not a distance, it scales with cluster size)")
 ax.set_xlabel("counties (bottom 30 branches merged)")
 ax.grid(False)
-fig.text(0.5, -0.02, f"Ward merges counties bottom-up and never uses K. Its widest gap is at TWO "
+# wrapped, or bbox_inches="tight" widens the canvas to fit one long line and the
+# dendrogram ends up a narrow strip floating in whitespace
+fig.text(0.5, -0.02, textwrap.fill(
+         f"Ward merges counties bottom-up and never uses K. Its widest gap is at TWO "
          f"groups ({gap2:.0f} units of empty tree), not four. The four-way cut sits in a crowded "
          f"stretch with only {gap4:.1f} units under it, so the dendrogram does not independently "
          f"argue for four. What it does show is moderate agreement with K-Means once you cut there "
-         f"(adjusted Rand index = {ari_hier:.2f}).",
-         ha="center", fontsize=8.5, color=MUT)
+         f"(adjusted Rand index = {ari_hier:.2f}).", 130),
+         ha="center", va="top", fontsize=8.5, color=MUT)
 fig.tight_layout()
 fig.savefig(f"{OUT}/5_dendrogram.png", bbox_inches="tight")
 print("saved figures/5_dendrogram.png")
@@ -311,7 +317,7 @@ fig.tight_layout()
 fig.savefig(f"{OUT}/7_resilience.png", bbox_inches="tight")
 print("saved figures/7_resilience.png")
 
-# --- 8. bias probe: what happens if we drop the demographic features? --------
+# --- 8. bias probe: what happens if the demographic features come out? -------
 DROP = ["EP_MINRTY", "EP_LIMENG"]
 KEPT = [c for c in COLS if c not in DROP]
 Xa = StandardScaler().fit_transform(df[KEPT])
@@ -329,8 +335,11 @@ print(f"adjusted Rand index vs original labels: {ari_abl:.3f}")
 print(f"counties keeping the same type: {(df['cluster'].values == lab_a).mean()*100:.1f}%")
 
 shared = [FEATS[c] for c in KEPT]
+# two panels share this width, so each column is about half as wide as it is in
+# figure 3 and the full-length names run into each other
+TIGHT = [f"Type {i+1}\n" + textwrap.fill(NAMES[i], 11) for i in range(K)]
 fig, axes = plt.subplots(1, 2, figsize=(13, 7), sharey=True)
-panels = [(cent[shared], f"All 17 inputs\nsilhouette {sil_full:.3f}", LABELS),
+panels = [(cent[shared], f"All 17 inputs\nsilhouette {sil_full:.3f}", TIGHT),
           (cent_a[shared], f"Minority + Limited English removed\nsilhouette {sil_abl:.3f}",
            [f"Type {i+1}\n(regrouped)" for i in range(K)])]
 for a, (cent_x, ttl, xlab) in zip(axes, panels):
@@ -349,12 +358,14 @@ axes[0].set_yticklabels(shared, fontsize=9)
 fig.suptitle("Does the structure survive without the demographic features?",
              fontsize=14, weight="bold")
 fig.colorbar(im, ax=axes, shrink=0.55, label="above / below US average")
-fig.text(0.5, 0.015, f"Dropping the two demographic inputs changes separation quality by "
+fig.text(0.5, 0.015, textwrap.fill(
+         f"Dropping the two demographic inputs changes separation quality by "
          f"{sil_abl-sil_full:+.3f} and {(df['cluster'].values == lab_a).mean()*100:.0f}% of counties keep "
          f"their type (adjusted Rand index {ari_abl:.2f}). The four-way structure survives, so it was "
-         "mostly tracking material conditions. What the two features bought us was not separation. "
-         "It was the name we wrote on the group.",
-         ha="center", fontsize=9, color=MUT)
+         "mostly tracking material conditions. What the two features bought was not separation. "
+         "It was the name that got written on the group. Note the panels are numbered "
+         "independently, so the gateways group moves to Type 2 on the right.", 150),
+         ha="center", va="top", fontsize=9, color=MUT)
 fig.savefig(f"{OUT}/8_bias_probe.png", bbox_inches="tight")
 print("saved figures/8_bias_probe.png")
 
