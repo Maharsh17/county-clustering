@@ -56,7 +56,27 @@ Every feature gets standardized to mean 0 and standard deviation 1 before cluste
 
 **Why K-Means, and what it costs.** The centroids *are* the answer. Each one reads as a profile of a kind of place, and a method that produced better separated but uninterpretable groups would have been useless here. On the other side of the ledger, K-Means assumes clusters are round and roughly the same size, which county data is definitely not. It forces every county into some group, so there is no "this place is unlike anything else" option. K gets picked by a person rather than learned. And the whole thing sits at the mercy of feature selection and scaling, which is exactly the weakness the bias probe goes after.
 
-**Choosing K.** Silhouette and Calinski-Harabasz both want K=2, and that is a real finding rather than a bug. At the coarsest level American counties split into doing fine and not doing fine. That split is the cleanest one statistically and completely useless analytically, because it is the same ranking this project was trying to get away from. Davies-Bouldin wants K=9, which produces groups too small to act on. K=4 got chosen for interpretability, and saying that out loud beats quietly reporting whichever K flattered the metrics.
+**Choosing K.** Follow the four tests to the letter and they send you three different directions. Silhouette and Calinski-Harabasz both point at K=2. The elbow points at K=3. Davies-Bouldin points all the way out at K=9. No value of K wins on every test, so treating this as a rule to obey does not actually settle anything.
+
+Reading all four together is a different exercise, and it has more in common with art than with arithmetic.
+
+| K | Inertia | Silhouette | Calinski-Harabasz | Davies-Bouldin |
+|---|---|---|---|---|
+| 2 | 43,580 | **0.2179** | **688.3** | 1.9091 |
+| 3 | 39,124 | 0.1829 | 561.2 | 1.8685 |
+| **4** | **36,011** | **0.1549** | **496.4** | **1.7353** |
+| 5 | 33,862 | 0.1271 | 445.3 | 1.8711 |
+| 6 | 31,715 | 0.1307 | 422.5 | 1.6901 |
+| 7 | 30,215 | 0.1269 | 395.3 | 1.7491 |
+| 8 | 28,943 | 0.1263 | 373.2 | 1.6762 |
+| 9 | 27,727 | 0.1175 | 357.8 | **1.6550** |
+| 10 | 26,848 | 0.1068 | 339.7 | 1.6918 |
+
+Look at K=4 across the whole row instead of one column at a time. The inertia curve is still inside its bend there, and K=4 is the second sharpest turn in the entire sweep behind K=3. Silhouette sits at 0.1549, which is the third highest of the nine values tested. Calinski-Harabasz sits at 496.4, also third highest. Davies-Bouldin comes in at 1.7353, and that is a real local minimum, lower than K=3 at 1.8685 and lower than K=5 at 1.8711.
+
+So K=4 does not win any single test outright. What it does is hold up on all four at the same time, which none of the individual winners manage. K=2 takes the best silhouette in the sweep and the worst Davies-Bouldin score in the sweep. K=9 takes the best Davies-Bouldin and very nearly the worst silhouette. Those are metrics optimizing for their own definition of a good cluster rather than agreeing with each other.
+
+There is an interpretability argument sitting on top of the numbers too. K=2 splits American counties into doing fine and not doing fine, which is the cleanest split statistically and completely useless analytically, because it is the same ranking this whole project was trying to get away from. K=9 produces groups too small to fund. K=4 lands where the arithmetic is still healthy and the output is something a person could actually act on.
 
 ![Choosing K](figures/2_optimal_k_tests.png)
 
@@ -134,10 +154,14 @@ The hardest problem along the way was those four K selection tests disagreeing c
 
 ## Data Sources
 
-- **CDC/ATSDR Social Vulnerability Index**, county level. 16 `EP_*` estimate fields plus the `RPL_THEMES` overall percentile. [atsdr.cdc.gov/place-health/php/svi](https://www.atsdr.cdc.gov/place-health/php/svi/index.html)
-- **NCHS Urban-Rural Classification Scheme** (`CODE2023`), running from 1 for large central metro through 6 for non core rural. Used as context rather than as a clustering input.
-- **County upward mobility** (`MOBILITY`), the mean adult household income rank for children raised at the 25th percentile. Values land in the 0.39 to 0.47 range that characterizes the Opportunity Atlas `kfr_pooled_pooled_p25` measure. *This attribution stays provisional until the exact file and vintage get confirmed.*
-- **County boundaries** for mapping, from the Plotly sample GeoJSON dataset.
+Three datasets got joined on 5 digit county FIPS to build `data/county_svi_mobility.csv`, which carries 23 columns for 3,132 counties.
+
+- **CDC/ATSDR Social Vulnerability Index**, county level. Supplies the 16 `EP_*` estimate fields, the `RPL_THEMES` overall vulnerability percentile, `E_TOTPOP`, and the `FIPS`, `COUNTY` and `ST_ABBR` identifiers. Missing values arrive coded as -999, which is the SVI convention. [atsdr.cdc.gov/place-health/php/svi](https://www.atsdr.cdc.gov/place-health/php/svi/index.html)
+- **Opportunity Atlas**, from Opportunity Insights. Supplies `MOBILITY`, which is the variable `kfr_pooled_pooled_p25` taken from `county_outcomes_simple.csv`. It measures the mean household income rank in adulthood for children whose parents sat at the 25th percentile, with those children observed at ages 31 to 37 in 2014 and 2015, pooled across race and gender. Confirmed by joining against the published file, where all 3,128 counties match to zero difference. [opportunityinsights.org](https://opportunityinsights.org/data/)
+- **NCHS Urban-Rural Classification Scheme for Counties, 2023 revision**. Supplies `CODE2023`, running from 1 for large central metro through 6 for non core rural. The official file documentation ships with this repo at `data/2023-File-Documentation-final.pdf`. [cdc.gov/nchs/data-analysis-tools/urban-rural.html](https://www.cdc.gov/nchs/data-analysis-tools/urban-rural.html)
+- **County boundaries** for mapping, from the Plotly sample GeoJSON dataset. These never enter the merged file. They supply map polygons at runtime, and the app averages each polygon to get a centroid for the neighbour markers.
+
+That works out to **18 substantive variables**, which is 16 vulnerability measures plus mobility plus the urban-rural code. Only **17 of them reach the model**, because `CODE2023` is never clustered on. It does two other jobs though. It reports the mean urban-rural level of each type, and it sits in the row filter, so a county missing an NCHS code drops out of the analysis entirely.
 
 ### References
 
