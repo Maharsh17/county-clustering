@@ -8,6 +8,21 @@ I go to school at UIUC, where the gap between Downtown Champaign and Campus Town
 
 **[Go try it](https://county-clustering.streamlit.app)**. Uncheck any measure in the sidebar and the model refits right in front of you. Turn off Minority and Limited English and watch how little actually moves.
 
+### What The Mobility Number Means
+
+Mobility shows up all over this write up, so it is worth pinning down before anything else. Take every child whose parents earned at the 25th percentile nationally, which is to say kids who grew up poor. Follow them until they are 31 to 37 years old. Ask where their own household income lands as a percentile of the national distribution. Average that across everyone raised in a given county and you get one number for the place.
+
+So it is a rank, not a dollar figure, and it always sits between 0 and 1. A county scoring 0.50 raised poor kids who ended up dead average as adults. Scoring 0.30 means they mostly stayed near the bottom.
+
+| | Value | Where |
+|---|---|---|
+| Lowest county | 0.154 | Yakutat City and Borough, Alaska |
+| Champaign County IL | 0.403 | Type 2, Costly big metros |
+| National average | 0.430 | |
+| Highest county | 0.688 | Harding County, South Dakota |
+
+The whole national range fits inside about half a point, so a gap of 0.08 between two types is a lot bigger than it looks. Between the worst county and the best sits a difference of roughly 53 percentile points in where a poor kid ends up, decided largely by where they happened to grow up. Champaign lands slightly under the national average, which is a useful reminder that a county full of a university is not automatically a county that lifts its own poor kids.
+
 ---
 
 ## Problem Statement
