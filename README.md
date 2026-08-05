@@ -102,7 +102,9 @@ K=4 wins nothing outright. It is the only value that holds up on all four at onc
 
 ![Choosing K](figures/2_optimal_k_tests.png)
 
-Ward hierarchical clustering is a second opinion that never sees K, and it came back mixed. Its clearest break is at two groups, with 45.5 units of empty tree before the final merge. The four way cut has 3.2 units under it, fourth widest of the options, sitting in a crowded stretch where the gaps under five, four and three groups all fall within four units of each other.
+Ward hierarchical clustering is a second opinion that never sees K, and it did not come back friendly. Its clearest break is at two groups, with 45.5 units of empty tree before the final merge, more than three times the runner up at six groups. The four way cut has 3.2 units under it, sixth widest of the nine, sitting in a crowded stretch where the gaps under five, four and three groups all fall within four units of each other.
+
+Ward's own silhouette says the same thing louder. Cutting its tree at two scores 0.247 and at three scores 0.224, then it drops off a cliff to 0.105 at four and never climbs back. Worth noting that 0.105 is also worse than the 0.155 K-Means gets at the same K on the same data, so part of what Ward is saying is that its four is a bad four.
 
 So the dendrogram does not vote for four. What it does show is moderate agreement once cut there, at an adjusted Rand index of 0.43. Immigrant gateways is the group that travels best between the two methods, though even it is not a clean match. Ward finds 177 counties where K-Means finds 196, and 127 of them are the same counties, so about two thirds of the group holds and the rest scatters. Ward's real disagreement is bigger than that. It lumps 94% of Comfortable America together with 44% of Rural hardship into one group of 1,794. Four is a choice, not a seam the data insists on.
 
