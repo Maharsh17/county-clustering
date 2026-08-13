@@ -24,7 +24,9 @@ from sklearn.metrics import (silhouette_score, calinski_harabasz_score, davies_b
                              adjusted_rand_score, r2_score, mean_absolute_error,
                              root_mean_squared_error)
 
-OUT = "figures"
+# figures are written straight into the published site, so there is one copy of
+# each and index.md can reference them relatively. See docs/_config.yml.
+OUT = "docs/figures"
 os.makedirs(OUT, exist_ok=True)
 INK, MUT = "#0b0b0b", "#8a8a86"
 DIVERGE = LinearSegmentedColormap.from_list("bwr", ["#256abf", "#f4f4f2", "#e34948"])
@@ -77,7 +79,7 @@ fig.text(0.5, 0.005, f"Axes are the first two principal components "
          "Higher silhouette = cleaner separation.", ha="center", fontsize=9, color=MUT)
 fig.tight_layout(rect=[0, 0.02, 1, 0.97])
 fig.savefig(f"{OUT}/1_k_sweep_grid.png", bbox_inches="tight")
-print("saved figures/1_k_sweep_grid.png")
+print("saved docs/figures/1_k_sweep_grid.png")
 print("silhouette by K:", {k: round(v, 3) for k, v in sil_by_k.items()})
 
 Ks = list(range(2, 11))
@@ -116,7 +118,7 @@ for a, (title, vals, color, goal) in zip(ax.ravel(), specs):
 fig.suptitle("How many clusters? Four tests on the combined dataset", fontsize=14, weight="bold")
 fig.tight_layout(rect=[0, 0, 1, 0.96])
 fig.savefig(f"{OUT}/2_optimal_k_tests.png", bbox_inches="tight")
-print("saved figures/2_optimal_k_tests.png")
+print("saved docs/figures/2_optimal_k_tests.png")
 
 km = KMeans(n_clusters=K, n_init=10, random_state=42).fit(X)
 df["cluster"] = km.labels_
@@ -166,7 +168,7 @@ fig.text(0.5, -0.01, "Dashed line separates the mobility outcome from the 16 vul
          ha="center", fontsize=8.5, color=MUT)
 fig.tight_layout()
 fig.savefig(f"{OUT}/3_combined_cluster_profiles.png", bbox_inches="tight")
-print("\nsaved figures/3_combined_cluster_profiles.png")
+print("\nsaved docs/figures/3_combined_cluster_profiles.png")
 
 ORDER = [f"Type {i+1}: {NAMES[i]}" for i in range(K)]
 MAP_COLORS = dict(zip(ORDER, ["#2a78d6", "#1baf7a", "#e34948", "#eda100"]))
@@ -192,7 +194,7 @@ fig.update_layout(legend_title_text="County type", title_x=0.5, margin=dict(l=0,
 # sees the whole 16 MB file as changed when nothing about the map moved
 fig.write_html(f"{OUT}/4_cluster_map.html", div_id="county-cluster-map")
 fig.write_image(f"{OUT}/4_cluster_map.png", width=1100, height=700, scale=2)
-print("saved figures/4_cluster_map.html and .png")
+print("saved docs/figures/4_cluster_map.html and .png")
 
 # --- 5. hierarchical clustering: is K=4 natural or forced? -------------------
 # Ward linkage on Euclidean distance. metric="euclidean" is scipy's default and is
@@ -230,7 +232,7 @@ fig.text(0.5, -0.02, textwrap.fill(
          ha="center", va="top", fontsize=8.5, color=MUT)
 fig.tight_layout()
 fig.savefig(f"{OUT}/5_dendrogram.png", bbox_inches="tight")
-print("saved figures/5_dendrogram.png")
+print("saved docs/figures/5_dendrogram.png")
 
 # --- 6. supervised check: can the 16 inputs predict the outcome? -------------
 SVI_ONLY = [c for c in COLS if c != "MOBILITY"]
@@ -282,7 +284,7 @@ fig.suptitle("Random forest: predicting a county's upward mobility from its 16 v
              fontsize=13, weight="bold")
 fig.tight_layout(rect=[0, 0, 1, 0.94])
 fig.savefig(f"{OUT}/6_model_evaluation.png", bbox_inches="tight")
-print("saved figures/6_model_evaluation.png")
+print("saved docs/figures/6_model_evaluation.png")
 
 # --- 7. resilience: counties that beat their prediction ----------------------
 # cross_val_predict so every county is scored by a model that never saw it
@@ -315,7 +317,7 @@ fig.text(0.5, -0.01, "Green = poor kids do better here than the model expects gi
          ha="center", fontsize=8.5, color=MUT)
 fig.tight_layout()
 fig.savefig(f"{OUT}/7_resilience.png", bbox_inches="tight")
-print("saved figures/7_resilience.png")
+print("saved docs/figures/7_resilience.png")
 
 # --- 8. bias probe: what happens if the demographic features come out? -------
 DROP = ["EP_MINRTY", "EP_LIMENG"]
@@ -367,11 +369,11 @@ fig.text(0.5, 0.015, textwrap.fill(
          "independently, so the gateways group moves to Type 2 on the right.", 150),
          ha="center", va="top", fontsize=9, color=MUT)
 fig.savefig(f"{OUT}/8_bias_probe.png", bbox_inches="tight")
-print("saved figures/8_bias_probe.png")
+print("saved docs/figures/8_bias_probe.png")
 
 # rounded so the file is byte-stable between runs. n_jobs=-1 sums trees in
 # whatever order they finish, which wobbles pred at ~1e-16 and churns the diff.
 out = df[["FIPS", "COUNTY", "ST_ABBR", "CODE2023", "E_TOTPOP", "RPL_THEMES", "MOBILITY",
           "pred", "residual", "cluster"]].round({"pred": 6, "residual": 6})
 out.to_csv(f"{OUT}/combined_clusters.csv", index=False)
-print("saved figures/combined_clusters.csv (now with predictions + residuals)")
+print("saved docs/figures/combined_clusters.csv (now with predictions + residuals)")

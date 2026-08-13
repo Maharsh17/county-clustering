@@ -45,7 +45,7 @@ def load():
     df["name"] = df["COUNTY"] + ", " + df["ST_ABBR"]
     # residuals come from analysis.py (cross-validated random forest) if it has been run
     try:
-        r = pd.read_csv("figures/combined_clusters.csv", dtype={"FIPS": str})
+        r = pd.read_csv("docs/figures/combined_clusters.csv", dtype={"FIPS": str})
         r["FIPS"] = r["FIPS"].str.zfill(5)
         df = df.merge(r[["FIPS", "pred", "residual"]], on="FIPS", how="left")
     except (FileNotFoundError, KeyError):
