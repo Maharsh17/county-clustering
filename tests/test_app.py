@@ -1,12 +1,12 @@
 """Smoke test for the pieces of app.py that can actually be wrong.
 
-Run: ./.venv/bin/python test_app.py
+Run: ./.venv/bin/python -m tests.test_app
 Streamlit widget wiring fails loudly in the browser. The clustering, the
 mobility-ordered relabelling and the nearest-neighbour search fail quietly.
 Those are what this checks.
 """
 import numpy as np
-from app import COLS, build_map, centroids, fit, load, nearest
+from app.app import COLS, build_map, centroids, fit, load, nearest
 
 df = load()
 assert len(df) == 3128, f"expected 3128 counties, got {len(df)}"

@@ -37,27 +37,39 @@ Refitting without minority share and limited English moved cluster separation by
 python -m venv .venv
 ./.venv/bin/python -m pip install -r requirements.txt
 
-./.venv/bin/python analysis.py       # 8 figures, the zoomable map, and combined_clusters.csv
-./.venv/bin/python test_app.py       # smoke test for clustering, type ordering, neighbours
-./.venv/bin/python -m streamlit run app.py
+./.venv/bin/python -m scripts.train       # 8 figures, the zoomable map, and combined_clusters.csv
+./.venv/bin/python -m tests.test_app       # smoke test for clustering, type ordering, neighbours
+./.venv/bin/python -m streamlit run app/app.py
 ```
 
-`analysis.py` takes about 20 seconds. Run it before the app, because the app reads the predictions it writes out.
+`scripts/train.py` takes about 20 seconds. Run it before the app, because the app reads the predictions it writes out.
 
 ```
 county-clustering/
-├── analysis.py                     the whole pipeline, top to bottom
-├── app.py                          the interactive explorer
-├── test_app.py                     type ordering, ablation wiring, neighbour search
-├── requirements.txt
+├── config/
+│   └── config.yaml                 K, the seed, the population floor, the feature list
+├── src/                            shared by the pipeline and the app
+│   ├── data.py                     loading and cleaning the merged file
+│   ├── model.py                    clustering, mobility-ordered relabelling, neighbours
+│   ├── evaluate.py                 the four cluster-quality tests
+│   └── utils.py                    config, palettes, paths
+├── scripts/
+│   └── train.py                    the whole pipeline, top to bottom
+├── app/
+│   └── app.py                      the interactive explorer
+├── tests/
+│   └── test_app.py                 type ordering, ablation wiring, neighbour search
 ├── data/
 │   ├── county_svi_mobility.csv     the merged input, 3,132 counties x 23 columns
 │   └── README.md                   data dictionary and source documentation
-└── docs/                           the published site
-    ├── README.md                   the full write up
-    ├── _config.yml
-    ├── assets/css/style.scss
-    └── figures/                    8 PNGs, the zoomable map, combined_clusters.csv
+├── outputs/
+│   └── combined_clusters.csv       every county with its type, prediction, residual
+├── docs/                           the published site
+│   ├── README.md                   the full write up
+│   ├── _config.yml
+│   ├── assets/css/style.scss
+│   └── figures/                    8 PNGs plus the zoomable map
+└── requirements.txt
 ```
 
 ## Authors

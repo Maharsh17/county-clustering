@@ -10,9 +10,12 @@ The harder question is the one the project spends most of its energy on. Are tho
 
 I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 377 miles from Champaign, and 579 miles from each other. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
 
-![Four types of US county](figures/4_cluster_map.png)
+<iframe src="figures/4_cluster_map.html" title="Four social-mobility types of US counties, interactive"
+        width="100%" height="640" style="border:0; display:block"></iframe>
 
-*[Open the zoomable version](figures/4_cluster_map.html), where every county is hoverable.*
+Hover any county for its name and type, drag to pan, scroll to zoom. This is the real
+Plotly figure rather than a screenshot of one, served from this site, so it does not
+depend on anything staying awake. [Open it full screen](figures/4_cluster_map.html).
 
 **[Go try it](https://county-clustering.streamlit.app)**. Uncheck any measure in the sidebar and the model refits right in front of you. Turn off Minority and Limited English and watch how little actually moves.
 
@@ -223,11 +226,13 @@ One caveat stands either way. Mobility is a clustering input and the forest's ta
 
 ![Bias probe](figures/8_bias_probe.png)
 
-| | All 17 measures | Two demographic measures removed |
-|---|---|---|
-| Silhouette | 0.155 | **0.156** |
-| Counties keeping their type | | **66.8%** |
-| Adjusted Rand index vs original | | **0.735** |
+| Measure | Value |
+|---|---|
+| Silhouette, all 17 measures | 0.155 |
+| Silhouette, minority share and limited English removed | 0.156 |
+| Change in separation | **+0.001** |
+| Counties keeping the type they already had | 66.8% |
+| Adjusted Rand index against the original labels | 0.735 |
 
 Immigrant gateways does not disappear when the demographic columns come out. It moves. 77% of those 196 counties regroup into the second column of the right hand panel above, a group of 236 defined by crowded housing (+1.8), being uninsured (+1.8), and single parenthood (+1.6). The same places, described by what they are up against instead of by who lives there.
 
@@ -262,7 +267,7 @@ There are three places bias gets into this pipeline, and the algorithm is not an
 
 ## Data Sources <!--- do not change this line -->
 
-Three public sources joined on 5 digit county FIPS build `data/county_svi_mobility.csv`, 23 columns for 3,132 counties. A fourth supplies map shapes at runtime without ever entering the file. The full data dictionary, the coverage arithmetic, and the gotchas live in [`data/README.md`](https://github.com/Maharsh17/county-clustering/blob/main/data/README.md).
+Three public sources joined on 5 digit county FIPS build `data/county_svi_mobility.csv`, 23 columns for 3,132 counties. The full data dictionary, the coverage arithmetic, and the gotchas live in [`data/README.md`](https://github.com/Maharsh17/county-clustering/blob/main/data/README.md).
 
 | Source | Contributes | What the models do with it |
 |---|---|---|
@@ -270,7 +275,6 @@ Three public sources joined on 5 digit county FIPS build `data/county_svi_mobili
 | | `RPL_THEMES`, `E_TOTPOP`, `FIPS`, `COUNTY`, `ST_ABBR` | Context, the 50,000 person filter, and the join key. None of them reach a model |
 | **[Opportunity Atlas](https://opportunityinsights.org/data/)** | `MOBILITY` | Both a clustering input and the random forest's target |
 | **[NCHS Urban-Rural 2023](https://www.cdc.gov/nchs/data-analysis-tools/urban-rural.html)** | `CODE2023` | External validation, plus it sits in the row filter |
-| **Plotly county GeoJSON** | boundary polygons | Map shapes at runtime, and centroids for the app's neighbour markers |
 
 `MOBILITY` is `kfr_pooled_pooled_p25` from the Atlas file `county_outcomes_simple.csv`, pooled across race and gender. `CODE2023` runs from 1 for large central metro to 6 for non core rural, and it is the one substantive variable held out of the clustering, which is exactly why it can serve as an outside check on whether the types mean anything. SVI codes missing values as -999 rather than leaving them blank, so the pipeline nulls those before anything else runs. This extract came through clean.
 
@@ -300,23 +304,25 @@ Three public sources joined on 5 digit county FIPS build `data/county_svi_mobili
 python -m venv .venv
 ./.venv/bin/python -m pip install -r requirements.txt
 
-./.venv/bin/python analysis.py       # 8 PNGs, the zoomable map as HTML, and combined_clusters.csv
-./.venv/bin/python test_app.py       # smoke test for clustering, type ordering, neighbours
-./.venv/bin/python -m streamlit run app.py
+./.venv/bin/python -m scripts.train       # 8 PNGs, the zoomable map as HTML, and combined_clusters.csv
+./.venv/bin/python -m tests.test_app       # smoke test for clustering, type ordering, neighbours
+./.venv/bin/python -m streamlit run app/app.py
 ```
 
-`analysis.py` takes about 20 seconds, and most of that is Kaleido starting a headless browser to render the county map rather than any of the modelling. Run it before the app, because the app reads the predictions it writes out.
+`scripts/train.py` takes about 20 seconds, and most of that is Kaleido starting a headless browser to render the county map rather than any of the modelling. Run it before the app, because the app reads the predictions it writes out.
 
-| File | What it is |
+| Path | What it is |
 |---|---|
-| `analysis.py` | The whole pipeline, top to bottom, 8 figures |
-| `app.py` | The interactive explorer |
-| `test_app.py` | Checks type ordering, ablation wiring, and the neighbour search |
+| `config/config.yaml` | K, the seed, the population floor, and the feature list |
+| `src/` | Loading, clustering, and metrics, shared by the pipeline and the app |
+| `scripts/train.py` | The whole pipeline, top to bottom, 8 figures |
+| `app/app.py` | The interactive explorer |
+| `tests/test_app.py` | Checks type ordering, ablation wiring, and the neighbour search |
 | `data/county_svi_mobility.csv` | The merged input, 3,132 counties and 23 columns |
-| `data/README.md` | Data dictionary for all 23 columns, the NCHS urban-rural scheme decoded, and how the row counts reconcile |
-| `figures/combined_clusters.csv` | Every county with its type, prediction, and residual |
+| `data/README.md` | Data dictionary and source documentation |
+| `outputs/combined_clusters.csv` | Every county with its type, prediction, and residual |
 
-Within a fixed environment every run of `analysis.py` produces byte identical output, so a rerun on unchanged data gives an empty diff. The one exception is `figures/4_cluster_map.png`. Kaleido rasterizes it through a headless Chrome that `requirements.txt` cannot pin, so that file moves whenever Chrome does.
+Within a fixed environment every run of `scripts/train.py` produces byte identical output, so a rerun on unchanged data gives an empty diff. The one exception is `figures/4_cluster_map.png`. Kaleido rasterizes it through a headless Chrome that `requirements.txt` cannot pin, so that file moves whenever Chrome does.
 
 Four things to do inside the app:
 
@@ -331,11 +337,11 @@ The hosted copy lives at **[county-clustering.streamlit.app](https://county-clus
 
 Issues and pull requests are welcome at [the repository](https://github.com/Maharsh17/county-clustering).
 
-- **Reporting a problem.** Open an issue with the command you ran and the full output. For a wrong number, say which figure or table it came from, since every claim here traces to a specific line of `analysis.py`.
+- **Reporting a problem.** Open an issue with the command you ran and the full output. For a wrong number, say which figure or table it came from, since every claim here traces to a specific line of `scripts/train.py`.
 - **Suggesting a feature.** Open an issue first. The Next Steps below are the shortlist, and the Connecticut crosswalk is the highest value one.
-- **Submitting code.** Fork, branch, and run `./.venv/bin/python test_app.py` before opening a pull request. It checks that types stay ordered by mobility at every K, that dropping features actually changes the grouping, and that the neighbour search returns real counties.
+- **Submitting code.** Fork, branch, and run `./.venv/bin/python -m tests.test_app` before opening a pull request. It checks that types stay ordered by mobility at every K, that dropping features actually changes the grouping, and that the neighbour search returns real counties.
 - **Conventions.** Four space indent, 100 character lines, double quotes, and comments that explain why rather than what. Deliberate simplifications carry a `ponytail:` comment naming the ceiling and the upgrade path.
-- **Reruns must be clean.** `analysis.py` is deterministic within a fixed environment, so `git status` should come back empty after a rerun on unchanged data. The one exception is `docs/figures/4_cluster_map.png`, which tracks your Chrome version.
+- **Reruns must be clean.** `scripts/train.py` is deterministic within a fixed environment, so `git status` should come back empty after a rerun on unchanged data. The one exception is `docs/figures/4_cluster_map.png`, which tracks your Chrome version.
 
 Contributions are licensed under AGPL-3.0, the same terms as the project.
 

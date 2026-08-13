@@ -1,4 +1,4 @@
-"""County social-mobility explorer. Run: ./.venv/bin/streamlit run app.py
+"""County social-mobility explorer. Run: ./.venv/bin/python -m streamlit run app/app.py
 
 One map, controls down the left, the selected county down the right. Every
 checkbox refits the model, so the map redraws to show what the model looks like
@@ -15,37 +15,22 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
+
+from src.data import load_counties
+from src.model import cluster, nearest
+from src.utils import (BASELINE_SIL, COLS, FEATS, GEOJSON, OUTPUTS, PAL_APP as PAL, SOURCE)
 
 st.set_page_config(page_title="What kind of place is your county?",
                    page_icon="🗺️", layout="wide")
 
-FEATS = {
-    "EP_POV150": "Poverty (<150%)", "EP_UNEMP": "Unemployment", "EP_HBURD": "Housing cost burden",
-    "EP_NOHSDP": "No HS diploma", "EP_UNINSUR": "Uninsured", "EP_AGE65": "Aged 65+",
-    "EP_AGE17": "Aged 17 & under", "EP_DISABL": "Disability", "EP_SNGPNT": "Single-parent",
-    "EP_LIMENG": "Limited English", "EP_MINRTY": "Minority", "EP_MUNIT": "Multi-unit housing",
-    "EP_MOBILE": "Mobile homes", "EP_CROWD": "Crowded housing", "EP_NOVEH": "No vehicle",
-    "EP_GROUPQ": "Group quarters", "MOBILITY": "Upward mobility",
-}
-COLS = list(FEATS)
-PAL = ["#2a78d6", "#1baf7a", "#eda100", "#e34948", "#4a3aa7", "#008300", "#e87ba4"]
-GEOJSON = "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json"
-SOURCE = "https://github.com/Maharsh17/county-clustering"
-BASELINE_SIL = 0.155   # all 17 measures at K=4, from analysis.py
-
-
 @st.cache_data
 def load():
-    df = pd.read_csv("data/county_svi_mobility.csv", dtype={"FIPS": str}).replace(-999, np.nan)
-    df = df.dropna(subset=COLS + ["CODE2023", "E_TOTPOP"]).reset_index(drop=True)
-    df["FIPS"] = df["FIPS"].str.zfill(5)
+    df = load_counties()
     df["name"] = df["COUNTY"] + ", " + df["ST_ABBR"]
-    # residuals come from analysis.py (cross-validated random forest) if it has been run
+    # residuals come from scripts/train.py (cross-validated random forest) if it has been run
     try:
-        r = pd.read_csv("docs/figures/combined_clusters.csv", dtype={"FIPS": str})
+        r = pd.read_csv(OUTPUTS / "combined_clusters.csv", dtype={"FIPS": str})
         r["FIPS"] = r["FIPS"].str.zfill(5)
         df = df.merge(r[["FIPS", "pred", "residual"]], on="FIPS", how="left")
     except (FileNotFoundError, KeyError):
@@ -76,30 +61,12 @@ def centroids():
     return out
 
 
-# ponytail: same 10 lines as analysis.py. A shared module would mean importing a
-# script that runs a full analysis on import, so the duplication is the cheap side.
 @st.cache_data
 def fit(cols: tuple, k: int):
     """Cluster on `cols`, relabelled so type 0 always has the lowest mean mobility."""
-    cols = list(cols)
-    X = StandardScaler().fit_transform(load()[cols])
-    km = KMeans(n_clusters=k, n_init=10, random_state=42).fit(X)
-    cent = pd.DataFrame(km.cluster_centers_, columns=[FEATS[c] for c in cols])
-    key = "Upward mobility" if "MOBILITY" in cols else cent.columns[0]
-    order = cent[key].sort_values().index.tolist()
-    labels = pd.Series(km.labels_).map({o: i for i, o in enumerate(order)}).values
-    return labels, cent.iloc[order].reset_index(drop=True), silhouette_score(X, km.labels_), X
-
-
-def nearest(X: np.ndarray, i: int, n: int = 5) -> np.ndarray:
-    """Row indices of the n counties closest to row i.
-
-    Every feature counts equally, which is what StandardScaler already implies:
-    a county's minority share weighs the same as its unemployment rate here.
-    That is a choice, not a law. See the bias probe in the README.
-    """
-    d = np.linalg.norm(X - X[i], axis=1)
-    return np.argsort(d)[1:n + 1]
+    df = load()
+    labels, cent, X = cluster(df, list(cols), k)
+    return labels, cent, silhouette_score(X, labels), X
 
 
 def miles(a, b) -> float:
@@ -316,7 +283,7 @@ def main():
     # ---- below the fold ------------------------------------------------------
     with st.expander("Which counties beat what their conditions predict?"):
         if df.residual.isna().all():
-            st.warning("Run `python analysis.py` first to generate model predictions.")
+            st.warning("Run `python -m scripts.train` first to generate model predictions.")
         else:
             floor = st.slider("Minimum population", 0, 500_000, 50_000, step=10_000,
                               help="Mobility estimates for very small counties are noisy.")

@@ -1,0 +1,10 @@
+# Everything the app needs, plus what scripts/train.py adds on top of it:
+# matplotlib draws seven of the eight figures, scipy supplies Ward linkage and
+# the dendrogram, and kaleido rasterizes the county map to PNG by driving a
+# headless Chrome it downloads separately.
+#
+# Install this locally. Do not point Streamlit Community Cloud at it.
+-r requirements.txt
+matplotlib==3.11.0
+scipy==1.18.0
+kaleido==1.3.0

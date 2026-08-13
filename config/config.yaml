@@ -1,0 +1,42 @@
+# Everything the pipeline lets you change without editing code.
+
+k: 4                    # number of clusters. See the Choosing K section of the write up.
+random_state: 42        # fixes KMeans init, the train/test split, and the forest
+test_size: 0.2
+cv_folds: 5
+n_estimators: 300
+population_floor: 50000 # resilience ranking drops counties below this, estimates are noisy
+
+paths:
+  data: data/county_svi_mobility.csv
+  figures: docs/figures   # written straight into the published site
+  outputs: outputs
+
+# Cluster names are editorial, not the model's. They only hold for k=4 on the
+# full feature set. See the bias probe.
+names:
+  - Rural hardship
+  - Costly big metros
+  - Immigrant gateways
+  - Comfortable America
+
+# 16 SVI vulnerability measures plus the outcome. Order matters, it fixes the
+# column order in every figure.
+features:
+  EP_POV150: Poverty (<150%)
+  EP_UNEMP: Unemployment
+  EP_HBURD: Housing cost burden
+  EP_NOHSDP: No HS diploma
+  EP_UNINSUR: Uninsured
+  EP_AGE65: Aged 65+
+  EP_AGE17: Aged 17 & under
+  EP_DISABL: Disability
+  EP_SNGPNT: Single-parent
+  EP_LIMENG: Limited English
+  EP_MINRTY: Minority
+  EP_MUNIT: Multi-unit housing
+  EP_MOBILE: Mobile homes
+  EP_CROWD: Crowded housing
+  EP_NOVEH: No vehicle
+  EP_GROUPQ: Group quarters
+  MOBILITY: Upward mobility

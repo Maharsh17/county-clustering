@@ -1,7 +1,7 @@
 # The Data Folder
 
 One file: `county_svi_mobility.csv`. Three public datasets joined on county FIPS, 3,132 rows, 23 columns.
-It is the only input `analysis.py` and `app.py` ever open. Raw sources are not in the repo.
+It is the only input `scripts/train.py` and `app/app.py` ever open. Raw sources are not in the repo.
 
 The original proposal clustered CDC PLACES health outcomes. PLACES says how sick a county is, not what
 happens to the children raised in it. Swapping to an upward mobility outcome turned this from a description
@@ -175,7 +175,7 @@ unknown rather than a guess.
 One check worth running: `E_TOTPOP` sums to 327,476,612. Add Connecticut's roughly 3.6 million and you land
 at a national total, so nothing else large went missing quietly.
 
-The last 4 rows go when `analysis.py` drops nulls. Petroleum MT, Arthur NE, King TX, and Loving TX are all
+The last 4 rows go when `scripts/train.py` drops nulls. Petroleum MT, Arthur NE, King TX, and Loving TX are all
 missing `MOBILITY` and nothing else.
 
 ### Gotchas
