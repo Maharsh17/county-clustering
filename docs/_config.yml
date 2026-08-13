@@ -5,3 +5,9 @@ description: Clustering 3,128 US counties by social vulnerability and upward mob
 
 # Jekyll's source is this docs/ folder, so the repo's code and data are already
 # outside the site and there is nothing left to exclude.
+
+# AI4ALL's guidelines require the page file be named README.md. jekyll-readme-index
+# turns that into the site index, but it skips any README carrying front matter
+# unless told otherwise, which silently leaves the site with no index at all.
+readme_index:
+  with_frontmatter: true
