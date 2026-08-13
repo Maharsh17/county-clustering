@@ -74,7 +74,7 @@ county-clustering/
 
 ## Authors
 
-**Maharsh Jani** ([majani2@illinois.edu](mailto:majani2@illinois.edu)), University of Illinois Urbana-Champaign. Built during the AI4ALL Ignite program!
+**Maharsh Jani** ([majani2@illinois.edu](mailto:majani2@illinois.edu)), University of Illinois Urbana-Champaign.
 
 ## License
 
