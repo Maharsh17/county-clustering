@@ -54,7 +54,8 @@ county-clustering/
 │   ├── evaluate.py                 the four cluster-quality tests
 │   └── utils.py                    config, palettes, paths
 ├── scripts/
-│   └── train.py                    the whole pipeline, top to bottom
+│   ├── train.py                    the whole pipeline, top to bottom
+│   └── deploy_hf.sh                push the explorer to a Hugging Face Space
 ├── app/
 │   └── app.py                      the interactive explorer
 ├── tests/

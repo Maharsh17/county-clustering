@@ -9,7 +9,15 @@ Copyright (C) 2026 Maharsh Jani. Licensed under the GNU Affero General
 Public License v3.0 or later. See LICENSE, or <https://www.gnu.org/licenses/>.
 """
 import json
+import sys
+from pathlib import Path
 from urllib.request import urlopen
+
+# `streamlit run app/app.py` puts this file's own folder on sys.path, not the
+# repo root, so src/ is invisible without this. Both Streamlit Community Cloud
+# and Hugging Face Spaces launch the app exactly that way.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import numpy as np
 import pandas as pd
 import plotly.express as px

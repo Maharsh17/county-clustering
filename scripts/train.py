@@ -7,8 +7,14 @@ Copyright (C) 2026 Maharsh Jani. Licensed under the GNU Affero General
 Public License v3.0 or later. See LICENSE, or <https://www.gnu.org/licenses/>.
 """
 import json
+import sys
 import textwrap
+from pathlib import Path
 from urllib.request import urlopen
+
+# so `python scripts/train.py` works as well as `python -m scripts.train`
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
