@@ -341,7 +341,7 @@ Contributions are licensed under AGPL-3.0, the same terms as the project.
 
 ## Authors <!--- do not change this line -->
 
-**Maharsh Jani** ([majani2@illinois.edu](mailto:majani2@illinois.edu)), University of Illinois Urbana-Champaign. Built for the AI4ALL Ignite accelerator.
+**Maharsh Jani** ([majani2@illinois.edu](mailto:majani2@illinois.edu)), University of Illinois Urbana-Champaign. Built during the AI4ALL Ignite program!
 
 ## License
 
