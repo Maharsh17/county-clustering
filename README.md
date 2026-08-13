@@ -69,8 +69,7 @@ county-clustering/
 │   ├── _config.yml
 │   ├── assets/css/style.scss
 │   └── figures/                    8 PNGs plus the zoomable map
-├── requirements.txt                what the deployed app needs
-└── requirements-train.txt          adds matplotlib, scipy, kaleido for the pipeline
+└── requirements.txt                everything the app and the pipeline need
 ```
 
 ## Authors
