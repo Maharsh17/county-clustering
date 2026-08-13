@@ -51,7 +51,7 @@ Run `analysis.py` before the app, because the app reads the predictions it write
 
 ## Authors
 
-**Maharsh Jani** ([majani2@illinois.edu](mailto:majani2@illinois.edu)), University of Illinois Urbana-Champaign. Built for the AI4ALL Ignite accelerator.
+**Maharsh Jani** ([majani2@illinois.edu](mailto:majani2@illinois.edu)), University of Illinois Urbana-Champaign. Built during the AI4ALL Ignite program!
 
 ## License
 
