@@ -402,3 +402,35 @@ a {
     }
   }
 }
+
+// The Streamlit embed. Cayman caps .main-content at 64rem, which squeezes a
+// wide dashboard with a left sidebar into something unusable, so this one
+// element breaks out of the column and back to the viewport.
+.app-embed {
+  position: relative;
+  left: 50%;
+  width: 96vw;
+  max-width: 1500px;
+  transform: translateX(-50%);
+  margin: 1.75rem 0;
+
+  iframe {
+    display: block;
+    width: 100%;
+    border: 1px solid $border-color;
+    border-radius: 0.3rem;
+    background: #ffffff;
+  }
+
+  // below the theme's medium breakpoint the sidebar collapses anyway, so give
+  // the frame back its normal width and stop the horizontal overflow
+  @include small {
+    left: auto;
+    width: 100%;
+    transform: none;
+
+    iframe {
+      height: 700px;
+    }
+  }
+}

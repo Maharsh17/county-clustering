@@ -238,6 +238,20 @@ Immigrant gateways does not disappear when the demographic columns come out. It 
 
 It shifts columns because types get renumbered by mean mobility on every fit, and the regrouped version sits at 0.400 while the costly metros group sits at 0.410. So the group that was third is now second. Worth knowing before comparing the two panels position by position, since they are sorted independently.
 
+**Run the probe yourself.** The app below is the live model, not a recording. Uncheck **Minority** and **Limited English** in the sidebar and watch the silhouette delta at the top: it moves by about +0.001, and the map barely changes. That is the claim in the table above, and you do not have to take my word for it.
+
+<div class="app-embed">
+  <iframe src="https://county-cluster.streamlit.app/?embed=true"
+          title="County clustering explorer, live"
+          height="900" loading="lazy"></iframe>
+</div>
+
+Hosted on Streamlit Community Cloud, which puts apps to sleep after a stretch of no
+traffic. If the frame above is blank or asks you to wake it, give it a minute or
+[open it in its own tab](https://county-cluster.streamlit.app). The figures and the
+map on this page are served from here and never sleep, so nothing else on the page
+depends on it.
+
 ### How AI/ML Can Amplify or Mitigate Bias Here
 
 There are three places bias gets into this pipeline, and the algorithm is not any of them.
