@@ -2,7 +2,11 @@
 layout: default
 ---
 
-This project sorts 3,128 US counties across 49 states and DC into a handful of types, using 16 social vulnerability measures plus how much money kids raised poor in a place go on to earn as adults. Then it spends most of its energy on a harder question. Are those groups real, or just an artifact of what somebody decided to measure? Built with K-Means, hierarchical validation and a random forest, in Python with scikit-learn and Streamlit.
+# What Kind of Place Is Your County?
+
+Sorted 3,128 US counties across 49 states and DC into four types of place using unsupervised K-Means clustering on 16 social vulnerability measures plus upward mobility, validated the grouping against Ward hierarchical clustering and a random forest, and then tested whether the types survive without their demographic inputs. Built with Python, scikit-learn, SciPy, pandas, Plotly, and Streamlit as a portfolio project in AI4ALL's Ignite accelerator.
+
+The harder question is the one the project spends most of its energy on. Are those groups real, or just an artifact of what somebody decided to measure?
 
 I go to school at UIUC, where the gap between Downtown Champaign and Campus Town is impossible to miss. So it was a genuinely fun surprise when the model decided that **Champaign County Illinois** is most like **Ingham County Michigan, Alachua County Florida, Tippecanoe County Indiana, Johnson County Iowa, and Charlottesville City Virginia**. Every single one is a college town. They sit an average of 377 miles from Champaign, and 579 miles from each other. Nobody told this thing that universities exist. It worked that out from poverty rates, housing, and age structure alone.
 
@@ -14,26 +18,56 @@ I go to school at UIUC, where the gap between Downtown Champaign and Campus Town
 
 **[Source code on GitHub](https://github.com/Maharsh17/county-clustering)**, including the full pipeline, the tests, and the data documentation.
 
+## Contents
+
+- [What The Mobility Number Means](#what-the-mobility-number-means)
+- [Problem Statement](#problem-statement)
+- [How This Project Changed](#how-this-project-changed)
+- [Key Results](#key-results)
+- [Methodologies](#methodologies)
+  - [How AI/ML Can Amplify or Mitigate Bias Here](#how-aiml-can-amplify-or-mitigate-bias-here)
+  - [Limitations](#limitations)
+- [Data Sources](#data-sources)
+  - [References](#references)
+- [Technologies Used](#technologies-used)
+  - [Running It Yourself](#running-it-yourself)
+  - [Contributing](#contributing)
+- [Authors](#authors)
+- [License](#license)
+- [Next Steps](#next-steps)
+
 ### What The Mobility Number Means
 
 Take every child whose parents earned at the 25th percentile nationally. Follow them to ages 31 to 37. Ask where their own household income lands as a percentile. Average that across everyone raised in a county and you get one number for the place.
 
 It is a rank, not dollars, always between 0 and 1. A county at 0.50 raised poor kids who ended up dead average. At 0.30 they mostly stayed near the bottom.
 
-| | Value | Where |
-|---|---|---|
-| Lowest county | 0.154 | Yakutat City and Borough, Alaska |
-| Champaign County IL | 0.403 | Type 2, Costly big metros |
-| National average | 0.430 | |
-| Highest county | 0.688 | Harding County, South Dakota |
+| | Value | Where | Population |
+|---|---|---|---|
+| Lowest county | 0.154 | Yakutat City and Borough, Alaska | 564 |
+| Champaign County IL | 0.403 | Type 2, Costly big metros | 206,525 |
+| National average | 0.430 | | |
+| Highest county | 0.688 | Harding County, South Dakota | 1,176 |
 
-Worst county to best is 53 percentile points, but the extremes are lonely. The middle 90% of counties are packed between 0.345 and 0.550, a band about a fifth of a point wide. That is why a 0.08 gap between two types is far bigger than it looks. It covers roughly 40% of the range almost every county actually lives in, or about 1.3 standard deviations.
+Look at that population column before believing the endpoints. Harding County has 1,176 people and Yakutat has 564, so the two places anchoring a 53 point scale hold about 1,700 residents between them. Every one of the top five counties is under 3,000 people and sits in North or South Dakota. All five at the bottom are in Alaska.
+
+That is not a coincidence, it is arithmetic. A mobility estimate is an average over the children the Atlas could track, so a county with a few dozen of them produces a number that swings on almost nothing. Mobility variance falls steadily as counties get bigger: the standard deviation is 0.084 among the smallest tenth of counties and 0.041 among the largest, and the correlation between log population and distance from the national average is -0.36. Put a floor on population and the scale collapses.
+
+| Population floor | Counties left | Highest | Lowest | Range |
+|---|---|---|---|---|
+| None | 3,128 | 0.688 Harding SD | 0.154 Yakutat AK | **0.534** |
+| 10,000 | 2,400 | 0.614 Stark ND | 0.245 Bethel AK | 0.369 |
+| 50,000 | 987 | 0.538 Stearns MN | 0.311 Richmond City VA | **0.227** |
+
+So roughly half of that 53 point spread is small sample noise rather than real difference between places. Read the extremes as trivia and the middle as the finding.
+
+The middle is where the argument actually lives. The middle 90% of counties are packed between 0.345 and 0.550, a band about a fifth of a point wide. That is why a 0.08 gap between two types is far bigger than it looks. It covers roughly 40% of the range almost every county actually lives in, or about 1.3 standard deviations, and it holds across thousands of counties instead of resting on one town in the Dakotas.
 
 Champaign sits under the national average, which is a useful reminder that a county full of university is not automatically a county that lifts its own poor kids.
 
 ---
 
-## Problem Statement
+## Problem Statement <!--- do not change this line -->
 
 Public health and anti poverty programs usually rank counties worst to best and send help down the list. A ranking tells you *who* is struggling. It has nothing to say about *what kind* of trouble they are in.
 
@@ -53,7 +87,7 @@ The bias probe was not in the original plan either. It got added once it became 
 
 The hardest thing that went wrong was silent. Connecticut disappeared from the dataset without an error, because the 2023 NCHS delineation replaced its eight counties with nine planning regions on new FIPS codes while the Opportunity Atlas still publishes against the old ones. An inner join losing every row of a state looks identical to a state that was never in the file. Diagnosing it meant reconciling the row count against NCHS's own control totals, which is documented in [`data/README.md`](https://github.com/Maharsh17/county-clustering/blob/main/data/README.md), and the crosswalk fix is the first item under Next Steps.
 
-## Key Results
+## Key Results <!--- do not change this line -->
 
 1. **Four types of American county fell out of the data**, numbered by mean upward mobility so that Type 1 is always the lowest.
 
@@ -74,7 +108,7 @@ The hardest thing that went wrong was silent. Connecticut disappeared from the d
 
 6. **[A live interactive version](https://county-clustering.streamlit.app)** lets anybody refit the model themselves. Every checkbox drops a measure and redraws the map, so the claim that these groups depend on what got measured is something you can go test rather than something you have to take on faith.
 
-## Methodologies
+## Methodologies <!--- do not change this line -->
 
 **Type of learning.** Unsupervised clustering, with a supervised regression bolted on afterwards as a sanity check.
 
@@ -218,7 +252,7 @@ There are three places bias gets into this pipeline, and the algorithm is not an
 ### Limitations
 
 - **Mobility is historical.** It tracks people aged 31 to 37 in 2014 and 2015, so they grew up in the 1980s and 1990s. The vulnerability measures and urban-rural codes are current, which means a county that was rural then and exurban now carries today's label next to yesterday's outcome.
-- **Small counties are noisy.** Their estimates rest on very few children. The resilience ranking drops anything under 50,000 people. The raw figures do not.
+- **Small counties are noisy.** Their estimates rest on very few children, and 23% of counties here have fewer than 10,000 people. Mobility variance runs twice as high in the smallest population decile as in the largest, which is why both ends of the national scale are tiny counties. The resilience ranking drops anything under 50,000 people. The cluster fitting does not, so every type carries some of this noise inside it.
 - **Correlation only.** An R² of 0.60 says the features track the outcome. Nothing here shows that changing a county's unemployment rate would change what its children earn.
 - **County averages hide neighborhoods.** Cook County holds tracts near both ends of the national mobility range and shows up here as a single dot at 0.385, one number standing in for 5.2 million people.
 - **Connecticut is missing entirely.** The 2023 delineation replaced its eight counties with nine planning regions on new FIPS codes, while the Opportunity Atlas still publishes against the old ones. The join found no match and the whole state fell out silently. Every national claim here is really a claim about 49 states plus DC.
@@ -226,7 +260,7 @@ There are three places bias gets into this pipeline, and the algorithm is not an
 - **Puerto Rico is out of scope.** Its 78 municipios are in the Atlas but never entered the merge, since NCHS covers states and DC only.
 - **The four names are editorial.** See the bias probe.
 
-## Data Sources
+## Data Sources <!--- do not change this line -->
 
 Three public sources joined on 5 digit county FIPS build `data/county_svi_mobility.csv`, 23 columns for 3,132 counties. A fourth supplies map shapes at runtime without ever entering the file. The full data dictionary, the coverage arithmetic, and the gotchas live in [`data/README.md`](https://github.com/Maharsh17/county-clustering/blob/main/data/README.md).
 
@@ -250,7 +284,7 @@ Three public sources joined on 5 digit county FIPS build `data/county_svi_mobili
 6. Bowser, D. M., Mauricio, K., Ruscitti, B. A., & Crown, W. H. (2024). American clusters: Using machine learning to understand health and health care disparities in the United States. *Health Affairs Scholar, 2*(3), qxae017. [10.1093/haschl/qxae017](https://doi.org/10.1093/haschl/qxae017)
 7. Khan, S. S., Krefman, A. E., McCabe, M. E., Petito, L. C., Yang, X., Kershaw, K. N., Pool, L. R., & Allen, N. B. (2022). Association between county-level risk groups and COVID-19 outcomes in the United States: A socioecological study. *BMC Public Health, 22*, Article 81. [10.1186/s12889-021-12469-y](https://doi.org/10.1186/s12889-021-12469-y)
 
-## Technologies Used
+## Technologies Used <!--- do not change this line -->
 
 - **Python 3.14**
 - **scikit-learn** for K-Means, PCA, the random forest, the train test split, cross validated prediction, and every clustering and regression metric
@@ -293,7 +327,19 @@ Four things to do inside the app:
 
 The hosted copy lives at **[county-clustering.streamlit.app](https://county-clustering.streamlit.app)**, running on Streamlit Community Cloud against this repo's `main`, so it redeploys on every push. GitHub Pages serves the write up you are reading right now, but Pages only serves static files and cannot run the app itself.
 
-## Authors
+### Contributing
+
+Issues and pull requests are welcome at [the repository](https://github.com/Maharsh17/county-clustering).
+
+- **Reporting a problem.** Open an issue with the command you ran and the full output. For a wrong number, say which figure or table it came from, since every claim here traces to a specific line of `analysis.py`.
+- **Suggesting a feature.** Open an issue first. The Next Steps below are the shortlist, and the Connecticut crosswalk is the highest value one.
+- **Submitting code.** Fork, branch, and run `./.venv/bin/python test_app.py` before opening a pull request. It checks that types stay ordered by mobility at every K, that dropping features actually changes the grouping, and that the neighbour search returns real counties.
+- **Conventions.** Four space indent, 100 character lines, double quotes, and comments that explain why rather than what. Deliberate simplifications carry a `ponytail:` comment naming the ceiling and the upgrade path.
+- **Reruns must be clean.** `analysis.py` is deterministic within a fixed environment, so `git status` should come back empty after a rerun on unchanged data. The one exception is `docs/figures/4_cluster_map.png`, which tracks your Chrome version.
+
+Contributions are licensed under AGPL-3.0, the same terms as the project.
+
+## Authors <!--- do not change this line -->
 
 **Maharsh Jani** ([majani2@illinois.edu](mailto:majani2@illinois.edu)), University of Illinois Urbana-Champaign. Built for the AI4ALL Ignite accelerator.
 
