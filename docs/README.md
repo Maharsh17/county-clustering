@@ -17,7 +17,7 @@ Hover any county for its name and type, drag to pan, scroll to zoom. This is the
 Plotly figure rather than a screenshot of one, served from this site, so it does not
 depend on anything staying awake. [Open it full screen](figures/4_cluster_map.html).
 
-**[Go try it](https://county-clustering.streamlit.app)**. Uncheck any measure in the sidebar and the model refits right in front of you. Turn off Minority and Limited English and watch how little actually moves.
+**[Go try it](https://county-cluster.streamlit.app)**. Uncheck any measure in the sidebar and the model refits right in front of you. Turn off Minority and Limited English and watch how little actually moves.
 
 **[Source code on GitHub](https://github.com/Maharsh17/county-clustering)**, including the full pipeline, the tests, and the data documentation.
 
@@ -109,7 +109,7 @@ The hardest thing that went wrong was silent. Connecticut disappeared from the d
 
 5. **Four statistical tests for the number of clusters gave four different answers** (silhouette 2, Calinski-Harabasz 2, Davies-Bouldin 9, elbow 3). The project runs 4 anyway and explains why below. Ward hierarchical clustering, which never sees K at all, does not settle it either. Its widest gap is at two groups, not four, and it only agrees with the K-Means grouping moderately once you cut it at four.
 
-6. **[A live interactive version](https://county-clustering.streamlit.app)** lets anybody refit the model themselves. Every checkbox drops a measure and redraws the map, so the claim that these groups depend on what got measured is something you can go test rather than something you have to take on faith.
+6. **[A live interactive version](https://county-cluster.streamlit.app)** lets anybody refit the model themselves. Every checkbox drops a measure and redraws the map, so the claim that these groups depend on what got measured is something you can go test rather than something you have to take on faith.
 
 ## Methodologies <!--- do not change this line -->
 
@@ -331,7 +331,7 @@ Four things to do inside the app:
 - Click a county to pin it and light up its five closest matches, with the average distance between them.
 - Rank counties against their predictions at any population floor, and diff any two counties feature by feature.
 
-The hosted copy lives at **[county-clustering.streamlit.app](https://county-clustering.streamlit.app)**, running on Streamlit Community Cloud against this repo's `main`, so it redeploys on every push. GitHub Pages serves the write up you are reading right now, but Pages only serves static files and cannot run the app itself.
+The hosted copy lives at **[county-cluster.streamlit.app](https://county-cluster.streamlit.app)**, running on Streamlit Community Cloud against this repo's `main`, so it redeploys on every push. GitHub Pages serves the write up you are reading right now, but Pages only serves static files and cannot run the app itself.
 
 ### Contributing
 

@@ -4,7 +4,7 @@ Sorting 3,128 US counties into four types of place using 16 social vulnerability
 
 Built with K-Means, Ward hierarchical validation, and a random forest, in Python with scikit-learn and Streamlit, as a portfolio project in AI4ALL's Ignite accelerator.
 
-To read the whole thing, with the results, the methodology, the bias probe, and every limitation, go to the **[full write up](https://maharsh17.github.io/county-clustering/)**. To poke at the model yourself, the **[live explorer](https://county-clustering.streamlit.app)** refits it in your browser every time you uncheck a measure.
+To read the whole thing, with the results, the methodology, the bias probe, and every limitation, go to the **[full write up](https://maharsh17.github.io/county-clustering/)**. To poke at the model yourself, the **[live explorer](https://county-cluster.streamlit.app)** refits it in your browser every time you uncheck a measure.
 
 [![Four types of US county](docs/figures/4_cluster_map.png)](https://maharsh17.github.io/county-clustering/)
 
@@ -54,8 +54,7 @@ county-clustering/
 │   ├── evaluate.py                 the four cluster-quality tests
 │   └── utils.py                    config, palettes, paths
 ├── scripts/
-│   ├── train.py                    the whole pipeline, top to bottom
-│   └── deploy_hf.sh                push the explorer to a Hugging Face Space
+│   └── train.py                    the whole pipeline, top to bottom
 ├── app/
 │   └── app.py                      the interactive explorer
 ├── tests/
@@ -70,7 +69,8 @@ county-clustering/
 │   ├── _config.yml
 │   ├── assets/css/style.scss
 │   └── figures/                    8 PNGs plus the zoomable map
-└── requirements.txt
+├── requirements.txt                what the deployed app needs
+└── requirements-train.txt          adds matplotlib, scipy, kaleido for the pipeline
 ```
 
 ## Authors
